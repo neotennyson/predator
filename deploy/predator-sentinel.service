@@ -1,0 +1,16 @@
+[Unit]
+Description=PREDATOR news sentinel
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/predator
+ExecStart=/opt/predator/.venv/bin/python -m engine.sentinel
+Restart=always
+RestartSec=10
+Environment=TZ=Asia/Kolkata
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target

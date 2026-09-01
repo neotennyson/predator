@@ -1,0 +1,16 @@
+[Unit]
+Description=PREDATOR dashboard (FastAPI)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/predator
+ExecStart=/opt/predator/.venv/bin/python -m uvicorn dashboard:app --host 127.0.0.1 --port 8787
+Restart=always
+RestartSec=10
+Environment=TZ=Asia/Kolkata
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target
