@@ -337,6 +337,25 @@ def status():
     }
 
 
+def _pgrep(pattern: str) -> bool:
+    try:
+        result = subprocess.run(["pgrep", "-f", pattern], capture_output=True, timeout=5)
+        return result.returncode == 0
+    except Exception:
+        return False
+
+
+@app.get("/api/health")
+def health():
+    with state["lock"]:
+        engine_running = state["proc"] is not None and state["proc"].poll() is None
+    return {
+        "engine": engine_running or _pgrep("run_paper.py"),
+        "autopilot": _pgrep("run_scheduler.py"),
+        "sentinel": _pgrep("engine.sentinel"),
+    }
+
+
 @app.get("/")
 def index():
     return FileResponse(STATIC / "index.html")

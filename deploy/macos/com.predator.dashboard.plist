@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>com.predator.dashboard</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/Users/USER/Documents/GitHub/predator/.venv/bin/python</string>
+    <string>-m</string>
+    <string>uvicorn</string>
+    <string>dashboard:app</string>
+    <string>--port</string>
+    <string>8787</string>
+    <string>--log-level</string>
+    <string>warning</string>
+  </array>
+  <key>WorkingDirectory</key><string>/Users/USER/Documents/GitHub/predator</string>
+  <key>RunAtLoad</key><true/>
+  <key>KeepAlive</key><true/>
+  <key>StandardOutPath</key><string>/tmp/predator-dashboard.log</string>
+  <key>StandardErrorPath</key><string>/tmp/predator-dashboard.err</string>
+</dict>
+</plist>
