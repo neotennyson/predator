@@ -268,6 +268,7 @@ def _paper_block() -> dict:
         running.append(eq)
     return {
         "rows": parsed[-15:][::-1],
+        "journal_full": parsed[::-1],
         "total": len(parsed),
         "wins": len(wins),
         "win_rate": (len(wins) / len(parsed)) if parsed else None,
@@ -306,6 +307,38 @@ def get_secrets():
         "risk_pct": data.get("risk_pct", 0.05),
         "key_set": bool(data.get("dashboard_key")),
     }
+
+
+@app.get("/api/activity")
+def activity():
+    entries: list[dict] = []
+    log_path = RESULTS / "engine_live.log"
+    try:
+        for line in log_path.read_text().splitlines()[-500:]:
+            if "paper mode" in line and "day=" in line:
+                day = line.split("day=")[1].split()[0]
+                entries.append({"date": day, "event": "", "status": "started", "detail": ""})
+            elif "engine armed" in line and entries:
+                try:
+                    entries[-1]["event"] = line.split("catalyst=")[1].split()[0]
+                except Exception:
+                    pass
+                entries[-1]["status"] = "armed"
+            elif "not a catalyst day" in line and entries:
+                entries[-1]["status"] = "quiet"
+            elif line.startswith("OPEN") and entries:
+                entries[-1]["status"] = "traded"
+                entries[-1]["detail"] = line[:120]
+            elif "CLOSE [" in line and entries:
+                entries[-1]["detail"] = line[:120]
+    except Exception:
+        pass
+    deduped: list[dict] = []
+    for e in entries:
+        if deduped and deduped[-1]["date"] == e["date"] and deduped[-1]["status"] == e["status"]:
+            continue
+        deduped.append(e)
+    return {"sessions": deduped[-40:][::-1]}
 
 
 @app.get("/api/status")
