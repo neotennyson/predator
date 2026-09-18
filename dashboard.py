@@ -3,6 +3,7 @@ from __future__ import annotations
 import csv
 import json
 import os
+import platform
 import re
 import subprocess
 import sys
@@ -386,14 +387,33 @@ def _pgrep(pattern: str) -> bool:
         return False
 
 
+def _launchd_alive(label: str) -> bool | None:
+    """macOS: exact launchd label check. Returns None on non-mac/error."""
+    if platform.system() != "Darwin":
+        return None
+    try:
+        out = subprocess.run(["launchctl", "list"], capture_output=True, text=True, timeout=5).stdout
+        return any(line.split("\t")[-1].strip() == label for line in out.splitlines())
+    except Exception:
+        return None
+
+
+def _service(label: str, pattern: str) -> bool:
+    alive = _launchd_alive(label)
+    if alive is not None:
+        return alive
+    return _pgrep(pattern)
+
+
 @app.get("/api/health")
 def health():
     with state["lock"]:
         engine_running = state["proc"] is not None and state["proc"].poll() is None
+    own_engine = str(ROOT / "run_paper.py")
     return {
-        "engine": engine_running or _pgrep("run_paper.py"),
-        "autopilot": _pgrep("run_scheduler.py"),
-        "sentinel": _pgrep("engine.sentinel"),
+        "engine": engine_running or _pgrep(own_engine),
+        "autopilot": _service("com.predator.scheduler", own_engine and str(ROOT / "run_scheduler.py")),
+        "sentinel": _service("com.predator.sentinel", "engine.sentinel"),
     }
 
 
