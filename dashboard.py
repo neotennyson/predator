@@ -118,7 +118,7 @@ def start_engine(req: StartReq, x_engine_key: str | None = Header(default=None))
     with state["lock"]:
         if state["proc"] is not None:
             return JSONResponse({"ok": False, "error": "engine already running"}, status_code=400)
-        cmd = [sys.executable, "-u", str(ROOT / "run_paper.py"), "--market", req.market, "--risk-pct", str(req.risk_pct)]
+        cmd = [sys.executable, "-u", str(ROOT / "run_predator.py"), "--market", req.market, "--risk-pct", str(req.risk_pct)]
         if req.live:
             cmd.append("--live")
         proc = subprocess.Popen(cmd, cwd=str(ROOT), stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, bufsize=1, env=os.environ.copy())
@@ -409,7 +409,7 @@ def _service(label: str, pattern: str) -> bool:
 def health():
     with state["lock"]:
         engine_running = state["proc"] is not None and state["proc"].poll() is None
-    own_engine = str(ROOT / "run_paper.py")
+    own_engine = str(ROOT / "run_predator.py")
     return {
         "engine": engine_running or _pgrep(own_engine),
         "autopilot": _service("com.predator.scheduler", own_engine and str(ROOT / "run_scheduler.py")),

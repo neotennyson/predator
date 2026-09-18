@@ -22,14 +22,14 @@ Backtest event-day gap mode over years (daily bars):
 
 Paper-trade the next catalyst day live (virtual fills, journal appended):
 
-    ./.venv/bin/python run_paper.py --market in
-    ./.venv/bin/python run_paper.py --market us
+    ./.venv/bin/python run_predator.py --market in
+    ./.venv/bin/python run_predator.py --market us
 
 Go LIVE via Dhan (NSE options, market orders, INTRADAY product):
 
     export DHAN_CLIENT_ID=...      # from Dhan dashboard
     export DHAN_ACCESS_TOKEN=...   # regenerate daily from web.dhan.co
-    ./.venv/bin/python run_paper.py --market in --live
+    ./.venv/bin/python run_predator.py --market in --live
 
 List upcoming catalysts:
 

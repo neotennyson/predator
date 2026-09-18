@@ -57,7 +57,7 @@ class Autopilot:
     def _start_engine(self, live: bool, risk_pct: float) -> bool:
         if self.proc and self.proc.poll() is None:
             return False
-        cmd = [sys.executable, "-u", str(ROOT / "run_paper.py"), "--market", "in", "--risk-pct", str(risk_pct)]
+        cmd = [sys.executable, "-u", str(ROOT / "run_predator.py"), "--market", "in", "--risk-pct", str(risk_pct)]
         if live:
             cmd.append("--live")
         self.proc = subprocess.Popen(cmd, cwd=str(ROOT), stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)

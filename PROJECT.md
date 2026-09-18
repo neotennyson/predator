@@ -47,7 +47,7 @@ PREDATOR is a machine that plays the highest-variance legal game (event-day opti
 | Secrets vault | `engine/secrets_store.py` | Local `secrets.json`, masked in UI |
 | Autopilot | `run_scheduler.py` | 08:30 reminder → 09:07 auto-arm → 15:25 kill → heartbeat → cool-offs |
 | Dashboard | `dashboard.py`, `static/index.html` | Full mission control in browser |
-| Entry point | `run_paper.py`, `run_backtest.py`, `run_dashboard.py` | Paper/live trader, backtester, UI launcher |
+| Entry point | `run_predator.py`, `run_backtest.py`, `run_dashboard.py` | Paper/live trader, backtester, UI launcher |
 
 ---
 
