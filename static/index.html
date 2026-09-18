@@ -42,6 +42,7 @@ body{background:var(--bg);color:var(--t1);font-family:Inter,-apple-system,BlinkM
 .fd{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--t3)}
 .fd i{width:7px;height:7px;border-radius:50%;background:var(--red);display:inline-block}
 .fd i.on{background:var(--green)}
+.fd i.standby{background:var(--amber)}
 
 /* ================= MAIN ================= */
 .main{flex:1;min-width:0;display:flex;flex-direction:column}
@@ -401,6 +402,7 @@ $('save-keys').onclick=async()=>{
   if($('k-token').value.trim())body.dhan_access_token=$('k-token').value.trim();
   if($('k-tgbt').value.trim())body.telegram_bot_token=$('k-tgbt').value.trim();
   if($('k-tgchat').value.trim())body.telegram_chat_id=$('k-tgchat').value.trim();
+  body.risk_pct=Number(risknum.value)/100;
   const r=await api('/api/secrets',body);
   if(r.status===401){$('keystatus').textContent='wrong engine key';return;}
   $('k-client').value='';$('k-token').value='';$('k-tgbt').value='';$('k-tgchat').value='';
@@ -465,10 +467,10 @@ async function refresh(){
 
   $('f-ap').className=h.autopilot?'on':'';
   $('f-sn').className=h.sentinel?'on':'';
-  $('f-en').className=(h.engine||d.running)?'on':'';
+  $('f-en').className=(h.engine||d.running)?'on':(h.autopilot?'standby':'');
   $('h-ap').className='dot '+((h.autopilot)?'g':'r');
   $('h-sn').className='dot '+((h.sentinel)?'g':'r');
-  $('h-en').className='dot '+((h.engine||d.running)?'g':'r');
+  $('h-en').className='dot '+((h.engine||d.running)?'g':(h.autopilot?'y':'r'));
 
   const PH={standby:['STANDBY','var(--t3)'],starting:['LAUNCHING','var(--amber)'],watching:['ARMED · WATCHING','var(--cyan)'],in_position:['IN POSITION','var(--green)'],managing:['RIDING RUNNER','var(--green)'],done:['SESSION DONE','var(--t3)']};
   const[label,color]=PH[d.phase]||PH.standby;

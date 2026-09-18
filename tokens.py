@@ -55,11 +55,17 @@ def _read_cache() -> dict:
 
 
 def _write_cache(cache: dict) -> None:
-    CACHE_PATH.write_text(json.dumps(cache, indent=2))
+    tmp = CACHE_PATH.with_suffix(".tmp")
+    tmp.write_text(json.dumps(cache, indent=2))
     try:
-        CACHE_PATH.chmod(0o600)
+        tmp.chmod(0o600)
+        os.replace(tmp, CACHE_PATH)
     except OSError:
-        pass
+        CACHE_PATH.write_text(json.dumps(cache, indent=2))
+        try:
+            CACHE_PATH.chmod(0o600)
+        except OSError:
+            pass
 
 
 def _fetch(broker: str) -> str:

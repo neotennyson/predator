@@ -206,31 +206,34 @@ def _event_payload(c, market: str) -> dict:
 
 
 def _dhan() -> dict:
-    try:
-        import tokens as token_store
+    def fetch():
+        try:
+            import tokens as token_store
 
-        token_store.get_token("dhan")
-    except Exception as exc:
-        return {"connected": False, "reason": f"Token API unavailable ({str(exc)[:80]})"}
-    try:
-        from engine.broker_dhan import DhanBroker
+            token_store.get_token("dhan")
+        except Exception as exc:
+            return {"connected": False, "reason": f"Token API unavailable ({str(exc)[:80]})"}
+        try:
+            from engine.broker_dhan import DhanBroker
 
-        fl = DhanBroker().fund_limit()
-        return {
-            "connected": True,
-            "available": fl.get("availabelBalance"),
-            "sod": fl.get("sodLimit"),
-            "withdrawable": fl.get("withdrawableBalance"),
-        }
-    except Exception as exc:
-        raw = str(exc)
-        if "401" in raw or "403" in raw:
-            reason = "Token expired or invalid. Generate a fresh access token: web.dhan.co → Profile → DhanHQ Trading APIs."
-        elif "404" in raw:
-            reason = "Dhan endpoint not found — check for engine updates."
-        else:
-            reason = raw[:180]
-        return {"connected": False, "reason": reason}
+            fl = DhanBroker().fund_limit()
+            return {
+                "connected": True,
+                "available": fl.get("availabelBalance"),
+                "sod": fl.get("sodLimit"),
+                "withdrawable": fl.get("withdrawableBalance"),
+            }
+        except Exception as exc:
+            raw = str(exc)
+            if "401" in raw or "403" in raw:
+                reason = "Token expired or invalid. Generate a fresh access token: web.dhan.co → Profile → DhanHQ Trading APIs."
+            elif "404" in raw:
+                reason = "Dhan endpoint not found — check for engine updates."
+            else:
+                reason = raw[:180]
+            return {"connected": False, "reason": reason}
+
+    return _ttl_cache("dhan", 60, fetch)
 
 
 def _backtest_block() -> dict:
@@ -405,16 +408,32 @@ def _service(label: str, pattern: str) -> bool:
     return _pgrep(pattern)
 
 
+_CACHE: dict[str, tuple[float, object]] = {}
+
+
+def _ttl_cache(key: str, ttl: float, fn):
+    now = time.time()
+    hit = _CACHE.get(key)
+    if hit and now - hit[0] < ttl:
+        return hit[1]
+    value = fn()
+    _CACHE[key] = (now, value)
+    return value
+
+
 @app.get("/api/health")
 def health():
-    with state["lock"]:
-        engine_running = state["proc"] is not None and state["proc"].poll() is None
-    own_engine = str(ROOT / "run_predator.py")
-    return {
-        "engine": engine_running or _pgrep(own_engine),
-        "autopilot": _service("com.predator.scheduler", own_engine and str(ROOT / "run_scheduler.py")),
-        "sentinel": _service("com.predator.sentinel", "engine.sentinel"),
-    }
+    def compute():
+        with state["lock"]:
+            engine_running = state["proc"] is not None and state["proc"].poll() is None
+        own_engine = str(ROOT / "run_predator.py")
+        return {
+            "engine": engine_running or _pgrep(own_engine),
+            "autopilot": _service("com.predator.scheduler", str(ROOT / "run_scheduler.py")),
+            "sentinel": _service("com.predator.sentinel", "engine.sentinel"),
+        }
+
+    return _ttl_cache("health", 10, compute)
 
 
 @app.get("/")

@@ -54,6 +54,41 @@ class Autopilot:
         events = calendar_in.indian_events(day, day, include_monthly_expiry=True, us_catalysts=us)
         return events[0] if events else None
 
+    def _engine_running(self) -> bool:
+        """True if a PREDATOR engine (and only one) is already alive, child or not."""
+        try:
+            out = subprocess.run(
+                ["pgrep", "-f", str(ROOT / "run_predator.py")],
+                capture_output=True, text=True, timeout=5,
+            ).stdout.split()
+            own = str(self.proc.pid) if self.proc else None
+            return any(p != own for p in out)
+        except Exception:
+            return False
+
+    def _kill_orphans(self) -> int:
+        """Terminate stray predator engines not spawned by this scheduler."""
+        import os
+        import signal
+
+        killed = 0
+        try:
+            out = subprocess.run(
+                ["pgrep", "-f", str(ROOT / "run_predator.py")],
+                capture_output=True, text=True, timeout=5,
+            ).stdout.split()
+            own = str(self.proc.pid) if self.proc else None
+            for pid in out:
+                if pid != own:
+                    try:
+                        os.kill(int(pid), signal.SIGTERM)
+                        killed += 1
+                    except Exception:
+                        pass
+        except Exception:
+            pass
+        return killed
+
     def _start_engine(self, live: bool, risk_pct: float) -> bool:
         if self.proc and self.proc.poll() is None:
             return False
@@ -87,7 +122,17 @@ class Autopilot:
         st = self.state
 
         if t >= (20, 0) and st.get("heartbeat") != today.isoformat():
-            nxt = calendar_in.indian_events(today, today.replace(month=12, day=31), include_monthly_expiry=True)
+            try:
+                import engine.calendar as cal_us
+
+                us = cal_us.catalysts_between(today + timedelta(days=1), today + timedelta(days=45))
+            except Exception:
+                us = []
+            try:
+                end = today.replace(month=12, day=31)
+            except ValueError:
+                end = today
+            nxt = calendar_in.indian_events(today + timedelta(days=1), end, include_monthly_expiry=True, us_catalysts=us)
             nxt_label = nxt[0].label if nxt else "none scheduled"
             st["heartbeat"] = today.isoformat()
             _save_state(st)
@@ -172,6 +217,28 @@ class Autopilot:
                         return "cool-off — 2 losing days"
                 except Exception:
                     pass
+                if st.get("rated") != today.isoformat():
+                    try:
+                        from engine.validation import rate_day
+
+                        r = rate_day(cat.name)
+                        st["rated"] = today.isoformat()
+                        _save_state(st)
+                        if float(r["multiplier"]) <= 0:
+                            st["started"] = today.isoformat()
+                            _save_state(st)
+                            send(
+                                f"⛔ Day rated <b>{r['grade']}</b> at arm time — engine stands down.\n"
+                                + "\n".join("• " + x for x in r["reasons"])
+                            )
+                            return f"day rated C at arm — skipped {label}"
+                    except Exception as exc:
+                        print(f"arm rating error: {exc}")
+                if self._engine_running():
+                    st["started"] = today.isoformat()
+                    _save_state(st)
+                    send(f"🐺 Engine already active for {label} — adopted. No double-arm.")
+                    return "engine already running — adopted"
                 risk = float(secrets.get("risk_pct", 0.05))
                 if self._start_engine(live, risk):
                     self._watch_engine()
@@ -180,9 +247,13 @@ class Autopilot:
                     send(f"🚀 <b>AUTO-ARMED</b> for {label}\nmode: {'REAL MONEY' if live else 'PRACTICE'} · risk {risk:.0%}")
                     return f"engine started for {label}"
 
-        if t >= KILL_AT and self.proc and self.proc.poll() is None:
-            self.proc.terminate()
-            return "engine terminated (safety kill)"
+        if t >= KILL_AT:
+            strays = self._kill_orphans()
+            if self.proc and self.proc.poll() is None:
+                self.proc.terminate()
+                return "engine terminated (safety kill)"
+            if strays:
+                return f"safety kill — terminated {strays} stray engine(s)"
 
         return f"{t[0]:02d}:{t[1]:02d} holding · hunt={cat.name} · started={st.get('started') == today.isoformat()}"
 
