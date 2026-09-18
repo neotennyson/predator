@@ -355,7 +355,11 @@ def status():
             "alerts": list(state["alerts"]),
         }
     today = date.today()
-    ev_in = [_event_payload(c, "IN") for c in calendar_in.indian_events(today, today + timedelta(days=75))[:7]]
+    try:
+        us_for_gaps = cal_us.catalysts_between(today - timedelta(days=7), today + timedelta(days=1))
+    except Exception:
+        us_for_gaps = []
+    ev_in = [_event_payload(c, "IN") for c in calendar_in.indian_events(today, today + timedelta(days=75), us_catalysts=us_for_gaps)[:9]]
     ev_us = [_event_payload(c, "US") for c in cal_us.upcoming(today, 4)]
     today_event = next((e for e in ev_in if e["date"] == today.isoformat()), None)
     return {

@@ -5,7 +5,7 @@ import subprocess
 import sys
 import threading
 import time
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
@@ -46,7 +46,12 @@ class Autopilot:
         self.state = _load_state()
 
     def _today_catalyst(self, day: date):
-        events = calendar_in.indian_events(day, day, include_monthly_expiry=True)
+        try:
+            import engine.calendar as cal_us
+            us = cal_us.catalysts_between(day - timedelta(days=7), day + timedelta(days=1))
+        except Exception:
+            us = []
+        events = calendar_in.indian_events(day, day, include_monthly_expiry=True, us_catalysts=us)
         return events[0] if events else None
 
     def _start_engine(self, live: bool, risk_pct: float) -> bool:
@@ -115,18 +120,31 @@ class Autopilot:
                     return f"day rated C — skipped {label}"
             except Exception as exc:
                 print(f"rating error: {exc}")
+            is_live_mode = secrets.get("mode", "practice") == "live"
+            tail = (
+                f"Paste a fresh Dhan token here: {url}\nEngine auto-arms at 09:07 IST."
+                if is_live_mode
+                else "Practice mode — no token needed. Engine auto-arms at 09:07 IST."
+            )
             send(
                 f"🐺 <b>PREDATOR MORNING CHECK</b>\n"
-                f"Hunt today: <b>{label}</b>{rating_line}\n\n"
-                f"Paste a fresh Dhan token here: {url}\n"
-                f"Engine auto-arms at 09:07 IST."
+                f"Hunt today: <b>{label}</b>{rating_line}\n\n{tail}"
             )
             return f"reminder sent for {label}"
 
         if t >= START_AT and st.get("started") != today.isoformat():
+            live = secrets.get("mode", "practice") == "live"
             token = secrets.get("dhan_access_token") or ""
-            if token:
-                live = secrets.get("mode", "practice") == "live"
+            if live and not token:
+                if t >= GIVE_UP_AT:
+                    st["started"] = today.isoformat()
+                    _save_state(st)
+                    send(f"⛔ Skipping {label} — no fresh Dhan token was pasted. Paste earlier next hunt day.")
+                    return "skipped — no token"
+                if now.minute % 15 == 0:
+                    send(f"⏳ Still waiting for today's Dhan token — live mode cannot arm without it. {secrets.get('dashboard_url', '')}")
+                return "waiting for token"
+            if not live or token:
                 if live:
                     try:
                         from engine.broker_dhan import DhanBroker
@@ -154,15 +172,6 @@ class Autopilot:
                     _save_state(st)
                     send(f"🚀 <b>AUTO-ARMED</b> for {label}\nmode: {'REAL MONEY' if live else 'PRACTICE'} · risk {risk:.0%}")
                     return f"engine started for {label}"
-            elif t >= GIVE_UP_AT:
-                st["started"] = today.isoformat()
-                _save_state(st)
-                send(f"⛔ Skipping {label} — no fresh Dhan token was pasted. Paste earlier next hunt day.")
-                return "skipped — no token"
-            else:
-                if now.minute % 15 == 0:
-                    send(f"⏳ Still waiting for today's Dhan token — engine cannot arm without it. {secrets.get('dashboard_url', '')}")
-                return "waiting for token"
 
         if t >= KILL_AT and self.proc and self.proc.poll() is None:
             self.proc.terminate()

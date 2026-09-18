@@ -11,7 +11,7 @@
   <key>WorkingDirectory</key><string>/Users/USER/Documents/GitHub/predator</string>
   <key>RunAtLoad</key><true/>
   <key>KeepAlive</key><true/>
-  <key>StandardOutPath</key><string>/tmp/predator-scheduler.log</string>
-  <key>StandardErrorPath</key><string>/tmp/predator-scheduler.err</string>
+  <key>StandardOutPath</key><string>/Users/USER/Library/Logs/predator/predator-scheduler.log</string>
+  <key>StandardErrorPath</key><string>/Users/USER/Library/Logs/predator/predator-scheduler.err</string>
 </dict>
 </plist>
