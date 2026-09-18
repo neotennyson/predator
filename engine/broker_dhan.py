@@ -23,25 +23,54 @@ class DhanBroker:
 
         stored = load()
         self.client_id = client_id or os.environ.get("DHAN_CLIENT_ID") or stored.get("dhan_client_id") or ""
-        self.access_token = access_token or os.environ.get("DHAN_ACCESS_TOKEN") or stored.get("dhan_access_token") or ""
-        if not self.client_id or not self.access_token:
-            raise RuntimeError("no Dhan credentials — paste a fresh token on the dashboard (or set env vars)")
+        if access_token:
+            self._token = access_token
+        else:
+            import tokens as token_store
+
+            self._token = token_store.get_token("dhan")
+        if not self.client_id:
+            raise RuntimeError("no Dhan client id — set DHAN_CLIENT_ID (env or dashboard keys)")
         self.timeout = timeout
         self.session = requests.Session()
 
+    @property
+    def access_token(self) -> str:
+        return self._token
+
     def _headers(self) -> dict:
         return {
-            "access-token": self.access_token,
+            "access-token": self._token,
             "client-id": self.client_id,
             "Content-Type": "application/json",
             "Accept": "application/json",
         }
 
+    def _is_auth_error(self, exc: requests.HTTPError) -> bool:
+        status = exc.response.status_code if exc.response is not None else 0
+        if status in (401, 403):
+            return True
+        try:
+            body = (exc.response.text or "").lower() if exc.response is not None else ""
+        except Exception:
+            body = ""
+        return "token" in body and "expire" in body
+
     def _req(self, method: str, path: str, json_body: dict | None = None, params: dict | None = None):
         url = f"{BASE}{path}"
-        resp = self.session.request(method, url, headers=self._headers(), json=json_body, params=params, timeout=self.timeout)
-        resp.raise_for_status()
-        return resp.json() if resp.text else {}
+        retried = False
+        while True:
+            resp = self.session.request(method, url, headers=self._headers(), json=json_body, params=params, timeout=self.timeout)
+            body_lower = resp.text.lower() if resp.text else ""
+            needs_refresh = resp.status_code in (401, 403) or ("token" in body_lower and "expire" in body_lower)
+            if needs_refresh and not retried:
+                retried = True
+                import tokens as token_store
+
+                self._token = token_store.force_refresh("dhan")
+                continue
+            resp.raise_for_status()
+            return resp.json() if resp.text else {}
 
     def fund_limit(self) -> dict:
         return self._req("GET", "/fundlimit")

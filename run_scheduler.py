@@ -134,7 +134,14 @@ class Autopilot:
 
         if t >= START_AT and st.get("started") != today.isoformat():
             live = secrets.get("mode", "practice") == "live"
-            token = secrets.get("dhan_access_token") or ""
+            token = ""
+            if live:
+                try:
+                    import tokens as token_store
+
+                    token = token_store.get_token("dhan")
+                except Exception:
+                    token = ""
             if live and not token:
                 if t >= GIVE_UP_AT:
                     st["started"] = today.isoformat()

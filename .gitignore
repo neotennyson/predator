@@ -6,3 +6,5 @@ secrets.json
 catalysts_extra.csv
 .DS_Store
 *.pyc
+.env
+*.env

@@ -205,8 +205,12 @@ def _event_payload(c, market: str) -> dict:
 
 
 def _dhan() -> dict:
-    if not os.environ.get("DHAN_CLIENT_ID") or not os.environ.get("DHAN_ACCESS_TOKEN"):
-        return {"connected": False, "reason": "Credentials not loaded. Paste the two export lines (DHAN_CLIENT_ID, DHAN_ACCESS_TOKEN) in the terminal, then restart the dashboard."}
+    try:
+        import tokens as token_store
+
+        token_store.get_token("dhan")
+    except Exception as exc:
+        return {"connected": False, "reason": f"Token API unavailable ({str(exc)[:80]})"}
     try:
         from engine.broker_dhan import DhanBroker
 
