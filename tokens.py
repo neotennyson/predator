@@ -22,18 +22,26 @@ _ROOT_ENV = Path(__file__).resolve().parent.parent / ".env"
 
 
 def _load_env() -> None:
-    """Parse the project .env into os.environ (never overrides existing vars)."""
+    """Parse the project .env into os.environ.
+
+    Later non-empty lines win (so an appended real key overrides an empty
+    placeholder). Existing real env vars are never overridden.
+    """
     try:
         raw = _ROOT_ENV.read_text()
     except OSError:
         return
+    parsed: dict[str, str] = {}
     for line in raw.splitlines():
         line = line.strip()
         if not line or line.startswith("#") or "=" not in line:
             continue
         key, _, value = line.partition("=")
         key, value = key.strip(), value.strip().strip("'\"")
-        if key and key not in os.environ:
+        if key and value:
+            parsed[key] = value
+    for key, value in parsed.items():
+        if key not in os.environ:
             os.environ[key] = value
 
 
