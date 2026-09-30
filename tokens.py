@@ -18,7 +18,7 @@ API_BASE = "https://tokens.example.invalid"
 CACHE_PATH = Path.home() / ".broker_tokens.json"
 CACHE_TTL = 6 * 3600
 VALID_BROKERS = ("dhan", "groww")
-_ROOT_ENV = Path(__file__).resolve().parent.parent / ".env"
+_ROOT_ENV = Path(__file__).resolve().parent / ".env"
 
 
 def _load_env() -> None:
