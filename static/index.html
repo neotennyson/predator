@@ -3,292 +3,371 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>PREDATOR</title>
+<title>PREDATOR — The Hunt</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#131722; --panel:#1e222d; --panel2:#22262f; --elev:#2a2e39;
-  --border:#2a2e39; --border2:#363a45;
-  --t1:#d1d4dc; --t2:#b2b5be; --t3:#787b86;
-  --blue:#2962ff; --up:#26a69a; --dn:#ef5350; --orange:#ff9800;
-  --mode:#2962ff;
+  --bg:#070a08; --bg2:#0b100c; --card:rgba(12,18,14,.72); --card2:rgba(16,24,18,.85);
+  --line:rgba(150,200,160,.14); --line2:rgba(150,200,160,.08);
+  --t1:#ece9e2; --t2:#a8a396; --t3:#6e6a5f;
+  --heat:#ff4530; --heat2:#ff9d3c; --hot:#ffd9a0;
+  --teal:#3fd4a4; --amber:#ffb340; --dn:#ff5a4e;
+  --acc:#3fd4a4; --acc2:#7be8c8;
+  --font-d:'Bebas Neue', 'Arial Narrow', sans-serif;
+  --font-b:'Inter', -apple-system, sans-serif;
 }
-body[data-mode="live"]{ --mode:#ef5350; }
+body[data-mode="live"]{ --acc:#ff4530; --acc2:#ff9d3c; }
 *{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--bg);color:var(--t1);font:14px/1.45 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;-webkit-font-smoothing:antialiased}
-button{font-family:inherit}
-::-webkit-scrollbar{width:9px;height:9px}
-::-webkit-scrollbar-thumb{background:#363a45;border-radius:5px;border:2px solid var(--panel)}
-::-webkit-scrollbar-track{background:transparent}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--t1);font:15px/1.6 var(--font-b);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+::selection{background:var(--acc);color:#040705}
+::-webkit-scrollbar{width:10px}
+::-webkit-scrollbar-thumb{background:#22301f;border-radius:6px;border:2px solid var(--bg)}
 
-/* ===== TOP TOOLBAR (TV app header) ===== */
-.tbar{height:46px;background:var(--panel);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 14px;gap:14px;position:sticky;top:0;z-index:10}
-.brand{display:flex;align-items:center;gap:9px}
-.brand .bm{width:26px;height:26px;border-radius:6px;background:var(--panel2);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:14px}
-.brand b{font-size:13.5px;font-weight:800;letter-spacing:2.5px;color:#fff}
-.brand small{font-size:10px;color:var(--t3);letter-spacing:1px}
-.quotechip{display:flex;align-items:center;gap:7px;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:5px 11px;font-size:12px;font-weight:600}
-.quotechip .sym{color:#fff;font-weight:800}
-.quotechip .qv{color:var(--t2);font-weight:500}
-.quotechip .qc{font-weight:800;font-variant-numeric:tabular-nums}
-.spacer{flex:1}
-.tbtn{height:30px;padding:0 14px;border-radius:6px;border:1px solid transparent;background:transparent;color:var(--t2);font-size:12px;font-weight:600;cursor:pointer}
-.tbtn:hover{background:var(--elev)}
-.tbtn.start{background:var(--mode);color:#fff}
-.tbtn.start:disabled{opacity:.35;cursor:not-allowed}
-.tbtn.abort{border-color:var(--dn);color:var(--dn)}
-.tbtn.abort:disabled{opacity:.3;cursor:not-allowed}
-.clockbox{font-size:12px;color:var(--t2);font-variant-numeric:tabular-nums;border-left:1px solid var(--border);padding-left:14px}
+/* film grain + scanlines */
+body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:99;opacity:.05;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/><feColorMatrix type='saturate' values='0'/></filter><rect width='120' height='120' filter='url(%23n)' opacity='.6'/></svg>")}
+.scan{position:relative}
+.scan::before{content:'';position:absolute;inset:0;pointer-events:none;border-radius:inherit;opacity:.5;
+  background:repeating-linear-gradient(0deg, transparent 0 3px, rgba(0,0,0,.16) 3px 4px)}
 
-/* ===== SHELL ===== */
-.shell{display:grid;grid-template-columns:1fr 296px;height:calc(100vh - 46px)}
-@media(max-width:1080px){.shell{grid-template-columns:1fr}.sidebar{display:none}}
-.main{overflow-y:auto;padding:14px 16px 40px}
-.sidebar{border-left:1px solid var(--border);overflow-y:auto;background:var(--bg)}
+/* ============ NAV ============ */
+.nav{position:fixed;top:0;left:0;right:0;z-index:50;display:flex;align-items:center;gap:22px;
+  padding:0 26px;height:60px;background:rgba(7,10,8,.82);backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--line2);transform:translateY(-100%);transition:transform .35s}
+.nav.show{transform:translateY(0)}
+.nav .nm{font-family:var(--font-d);font-size:22px;letter-spacing:5px;color:#fff}
+.nav .nm i{font-style:normal;color:var(--acc)}
+.nav a{color:var(--t2);text-decoration:none;font-size:12.5px;font-weight:600;letter-spacing:1.6px;text-transform:uppercase;transition:.2s}
+.nav a:hover{color:var(--acc)}
+.nav .sp{flex:1}
+.nav .st{display:flex;align-items:center;gap:8px;font-size:11px;letter-spacing:1.4px;color:var(--t2);font-weight:700}
+.nav .dot{width:9px;height:9px;border-radius:50%;background:var(--t3)}
+.nav .dot.g{background:var(--teal);box-shadow:0 0 9px var(--teal)}
+.nav .dot.a{background:var(--amber);box-shadow:0 0 9px var(--amber)}
+.nav .dot.r{background:var(--dn);box-shadow:0 0 9px var(--dn)}
 
-/* ===== TV data window (chart top-left stats) ===== */
-.dwindow{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:14px 16px;margin-bottom:12px}
-.dw-top{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
-.dw-sym{font-size:16px;font-weight:800;color:#fff}
-.dw-sub{font-size:11px;color:var(--t3)}
-.dw-flag{font-size:10px;font-weight:800;letter-spacing:.8px;padding:2px 8px;border-radius:4px;background:var(--mode);color:#fff}
-.dw-vals{display:flex;gap:26px;margin-top:11px;flex-wrap:wrap}
-.dwv .l{font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.7px}
-.dwv .v{font-size:15px;font-weight:700;font-variant-numeric:tabular-nums;margin-top:2px}
-.dwv .v.up{color:var(--up)} .dwv .v.dn{color:var(--dn)} .dwv .v.md{color:var(--mode)}
-.dw-sentence{margin-top:11px;padding:10px 12px;background:var(--bg);border:1px solid var(--border);border-radius:6px;font-size:12.5px;color:var(--t2);line-height:1.5}
-.dw-sentence b{color:var(--mode)}
+/* ============ HERO ============ */
+.hero{position:relative;min-height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:80px 22px 60px;overflow:hidden}
+.hero .bg{position:absolute;inset:0;background:url("https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1800&q=70&fm=jpg") center/cover;filter:brightness(.38) saturate(.75) contrast(1.08)}
+.hero .bg2{position:absolute;inset:0;background:url("https://images.unsplash.com/photo-1448375240586-882707db888b?w=1400&q=70&fm=jpg") center/cover;mix-blend-mode:overlay;opacity:.5}
+.hero .fog{position:absolute;inset:0;background:
+  radial-gradient(120% 90% at 50% 108%, rgba(9,14,10,.96) 0%, rgba(9,14,10,.55) 42%, transparent 72%),
+  linear-gradient(180deg, rgba(7,10,8,.88) 0%, rgba(7,10,8,.25) 34%, rgba(7,10,8,.65) 78%, var(--bg) 100%)}
+body[data-mode="live"] .hero .fog{background:
+  radial-gradient(120% 90% at 50% 108%, rgba(20,6,4,.96) 0%, rgba(24,8,5,.6) 42%, transparent 72%),
+  linear-gradient(180deg, rgba(10,5,4,.9) 0%, rgba(12,6,5,.28) 34%, rgba(10,5,4,.7) 78%, var(--bg) 100%)}
+.hero .beams{position:absolute;inset:0;opacity:.6;background:
+  radial-gradient(46% 26% at 30% 6%, rgba(120,220,170,.13), transparent 70%),
+  radial-gradient(52% 30% at 74% 12%, rgba(120,220,170,.09), transparent 70%)}
+.hero>*{position:relative;z-index:2}
+.kicker{font-size:12px;letter-spacing:6px;font-weight:700;color:var(--acc2);text-transform:uppercase;margin-bottom:14px}
+.kicker::before,.kicker::after{content:'///';color:var(--t3);margin:0 12px;letter-spacing:0}
+.h1{font-family:var(--font-d);font-size:clamp(72px,14vw,190px);line-height:.9;letter-spacing:10px;color:#fff;
+  text-shadow:0 0 60px rgba(63,212,164,.25), 0 4px 30px rgba(0,0,0,.7)}
+body[data-mode="live"] .h1{text-shadow:0 0 60px rgba(255,69,48,.35), 0 4px 30px rgba(0,0,0,.7)}
+.h1 em{font-style:normal;color:var(--acc)}
+.hero .tag{margin-top:16px;max-width:560px;color:var(--t2);font-size:15.5px;line-height:1.65}
+.hero .tag b{color:var(--t1)}
+.hero-cta{display:flex;gap:14px;margin-top:30px;flex-wrap:wrap;justify-content:center}
+.btn-hero{padding:15px 34px;border-radius:8px;border:1px solid var(--acc);background:linear-gradient(180deg,var(--acc),color-mix(in srgb,var(--acc) 70%,#000));color:#04120c;font-weight:800;font-size:13.5px;letter-spacing:2.5px;cursor:pointer;box-shadow:0 0 34px color-mix(in srgb,var(--acc) 40%,transparent);transition:.2s}
+.btn-hero.ghost{background:transparent;color:var(--acc);box-shadow:none}
+.btn-hero:hover{transform:translateY(-2px);box-shadow:0 6px 44px color-mix(in srgb,var(--acc) 55%,transparent)}
 
-/* ===== chart pane ===== */
-.pane{background:var(--panel);border:1px solid var(--border);border-radius:8px;margin-bottom:12px;overflow:hidden}
-.pane-h{display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid var(--border);font-size:11px;color:var(--t2);font-weight:600}
-.pane-h .tabbtn{background:var(--elev);color:#fff;border-radius:4px;padding:3px 9px;font-size:10.5px;font-weight:700;letter-spacing:.5px}
-.pane-h .right{margin-left:auto;font-size:10.5px;color:var(--t3)}
-.pane-b{padding:12px 14px}
-svg.eq{width:100%;height:150px;display:block}
+/* the reticle */
+.reticle{margin-top:44px;width:min(520px,92vw)}
+.reticle svg{width:100%;display:block}
+.reticle .track{stroke:var(--acc);filter:drop-shadow(0 0 6px var(--acc))}
+.reticle text{font-family:var(--font-b);font-size:9.5px;letter-spacing:2.5px;fill:var(--acc2);font-weight:700}
+.reticle .big{font-family:var(--font-d);font-size:30px;letter-spacing:4px;fill:#fff}
+@keyframes lockpulse{0%,100%{opacity:.85}50%{opacity:1}}
+.reticle .track{animation:lockpulse 2.2s ease-in-out infinite}
 
-/* ===== strategy tester stats (dotted leaders) ===== */
-.st-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px 34px}
-@media(max-width:700px){.st-grid{grid-template-columns:1fr}}
-.strow{display:flex;align-items:baseline;gap:8px;padding:5px 0;font-size:12.5px}
-.strow .k{color:var(--t2);white-space:nowrap}
-.strow .dots{flex:1;border-bottom:1px dotted var(--border2);transform:translateY(-3px)}
-.strow .v{font-weight:700;font-variant-numeric:tabular-nums;color:#fff}
-.strow .v.up{color:var(--up)} .strow .v.dn{color:var(--dn)}
-.strow .v small{color:var(--t3);font-weight:500}
+/* scroll cue */
+.cue{position:absolute;bottom:26px;left:50%;transform:translateX(-50%);color:var(--t3);font-size:10.5px;letter-spacing:4px;font-weight:700}
+.cue::after{content:'';display:block;width:1px;height:34px;background:linear-gradient(var(--acc),transparent);margin:8px auto 0}
 
-/* ===== sidebar watchlist panels ===== */
-.wl{border-bottom:1px solid var(--border)}
-.wl-h{display:flex;align-items:center;justify-content:space-between;padding:9px 12px;font-size:10.5px;font-weight:700;letter-spacing:1.2px;color:var(--t3)}
-.wl-h .r{color:var(--t3);font-weight:500;letter-spacing:0}
-.wl-row{display:flex;align-items:center;gap:9px;padding:7px 12px;font-size:12px;cursor:pointer}
-.wl-row:hover{background:var(--panel)}
-.wl-row .sq{width:8px;height:8px;border-radius:2px;flex:none;background:var(--t3)}
-.wl-row .sq.on{background:var(--up)} .wl-row .sq.off{background:var(--dn)} .wl-row .sq.idle{background:var(--orange)}
-.wl-row .nm{color:#fff;font-weight:600}
-.wl-row .ds{color:var(--t3);font-size:10.5px}
-.wl-row .rt{margin-left:auto;font-variant-numeric:tabular-nums;font-weight:700;color:var(--t2)}
-.wl-row.expanded .sub{display:block}
-.wl-sub{padding:4px 12px 10px 30px;font-size:11px;color:var(--t2);line-height:1.55}
-.wl-sub b{color:var(--t1)}
-.ev-date{color:var(--t3);font-size:10.5px;width:52px;flex:none;font-variant-numeric:tabular-nums}
-.ev-nm{color:#fff;font-weight:600;font-size:12px}
-.ev-impact{margin-left:auto;font-size:9.5px;font-weight:800;padding:2px 7px;border-radius:4px;letter-spacing:.5px}
-.imp-high{background:rgba(239,83,80,.15);color:var(--dn)}
-.imp-med{background:rgba(255,152,0,.15);color:var(--orange)}
+/* ============ SECTIONS ============ */
+section{max-width:1180px;margin:0 auto;padding:84px 22px 10px}
+.shead{margin-bottom:36px}
+.shead .sk{font-size:11px;letter-spacing:5px;font-weight:800;color:var(--acc);text-transform:uppercase}
+.shead h2{font-family:var(--font-d);font-size:clamp(40px,6vw,74px);letter-spacing:4px;line-height:.95;color:#fff;margin-top:8px}
+.shead p{color:var(--t2);max-width:640px;margin-top:12px;font-size:14.5px}
+.reveal{opacity:0;transform:translateY(26px);transition:opacity .7s ease,transform .7s ease}
+.reveal.in{opacity:1;transform:none}
 
-/* ===== calendar table (economic calendar style) ===== */
-.cal{width:100%;border-collapse:collapse;font-size:12.5px}
-.cal th{text-align:left;font-size:10px;color:var(--t3);font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:8px 14px;border-bottom:1px solid var(--border)}
-.cal td{padding:9px 14px;border-bottom:1px solid var(--border)}
-.cal tr:last-child td{border-bottom:0}
-.cal tr.rowh:hover td{background:var(--panel2)}
-.cal .why{display:none;padding:6px 2px 2px;color:var(--t2);font-size:11.5px;line-height:1.55;max-width:560px}
-.cal tr.open .why{display:block}
-.caret{color:var(--t3);font-size:9px;transition:.2s}
-tr.open .caret{transform:rotate(90deg);color:var(--mode)}
-.mono{font-variant-numeric:tabular-nums}
-.pos{color:var(--up);font-weight:700} .neg{color:var(--dn);font-weight:700}
-.pill{font-size:9.5px;font-weight:800;padding:2px 8px;border-radius:4px;letter-spacing:.6px}
-.pill.VIRTUAL{background:rgba(41,98,255,.14);color:#7aa5ff}
-.pill.LIVE{background:rgba(239,83,80,.15);color:var(--dn)}
-.pill.BACKTEST{background:rgba(255,152,0,.14);color:var(--orange)}
-.gA{color:var(--up)} .gB{color:var(--orange)} .gC{color:var(--dn)}
+/* brief */
+.brief{display:grid;grid-template-columns:1fr 1fr;gap:26px;align-items:stretch}
+@media(max-width:900px){.brief{grid-template-columns:1fr}}
+.brief .ph{border-radius:14px;overflow:hidden;position:relative;min-height:380px;border:1px solid var(--line)}
+.brief .ph img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:brightness(.62) saturate(.8)}
+.brief .ph .cap{position:absolute;left:0;right:0;bottom:0;padding:22px;background:linear-gradient(transparent, rgba(5,8,6,.94));font-size:13px;color:var(--t2)}
+.brief .ph .cap b{color:#fff;font-family:var(--font-d);font-size:21px;letter-spacing:2px;display:block;margin-bottom:4px}
+.tline{display:flex;flex-direction:column;gap:0;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px;backdrop-filter:blur(8px)}
+.tstep{display:flex;gap:16px;padding:13px 2px;border-bottom:1px dashed var(--line)}
+.tstep:last-child{border-bottom:0}
+.tstep .tt{font-family:var(--font-d);font-size:19px;color:var(--acc);width:58px;flex:none;letter-spacing:1px;padding-top:2px}
+.tstep .tx .a{font-weight:700;font-size:14px;color:#fff}
+.tstep .tx .b{font-size:12.5px;color:var(--t2);line-height:1.55;margin-top:2px}
+.tstep .tx .b i{font-style:normal;color:var(--acc2)}
 
-/* ===== alert ===== */
-.alert{display:none;padding:9px 14px;border-bottom:1px solid var(--border);background:rgba(239,83,80,.08);color:#f1a0a0;font-size:12px}
-.alert.show{display:block}
+/* record */
+.record-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px}
+@media(max-width:860px){.record-grid{grid-template-columns:repeat(2,1fr)}}
+.rc{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 18px 15px;backdrop-filter:blur(8px);position:relative;overflow:hidden}
+.rc::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--acc),transparent);opacity:.5}
+.rc .l{font-size:10px;letter-spacing:2.2px;color:var(--t3);font-weight:700;text-transform:uppercase}
+.rc .v{font-family:var(--font-d);font-size:40px;letter-spacing:1px;color:#fff;margin-top:6px;line-height:1}
+.rc .v.up{color:var(--teal)} .rc .v.dn{color:var(--dn)}
+.rc .s{font-size:11px;color:var(--t3);margin-top:5px}
+.quote{font-family:var(--font-d);font-size:26px;letter-spacing:3px;color:var(--t2);margin:6px 0 14px}
+.quote i{font-style:normal;color:var(--acc)}
+.eqwrap{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;backdrop-filter:blur(8px)}
+.eqwrap .eh{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.eqwrap .eh .a{font-size:11px;letter-spacing:2.4px;color:var(--t3);font-weight:700}
+.eqwrap .eh .b{font-size:11px;color:var(--t3)}
+svg.thermal{width:100%;height:170px;display:block}
+.killsheet{margin-top:14px;background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+table.ks{width:100%;border-collapse:collapse;font-size:13px}
+.ks th{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--t3);text-align:left;padding:11px 16px;border-bottom:1px solid var(--line)}
+.ks td{padding:10px 16px;border-bottom:1px solid var(--line2);font-variant-numeric:tabular-nums}
+.ks tr:last-child td{border:0}
+.ks tr:hover td{background:rgba(120,200,150,.04)}
+.pos{color:var(--teal);font-weight:700} .neg{color:var(--dn);font-weight:700}
+.badge{font-size:9.5px;font-weight:800;letter-spacing:1px;padding:3px 9px;border-radius:5px}
+.badge.VIRTUAL{background:rgba(63,212,164,.13);color:var(--teal)}
+.badge.LIVE{background:rgba(255,69,48,.16);color:var(--dn)}
+.badge.BACKTEST{background:rgba(255,179,64,.14);color:var(--amber)}
+.cArrow{color:var(--teal);font-weight:700} .pArrow{color:var(--dn);font-weight:700}
 
-/* ===== controls ===== */
-.ctl-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-@media(max-width:800px){.ctl-grid{grid-template-columns:1fr}}
-.ctl-card{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:14px 16px}
-.ctl-l{font-size:10px;color:var(--t3);font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px}
-.seg{display:inline-flex;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:2px}
-.seg button{border:0;background:transparent;color:var(--t2);font-size:11.5px;font-weight:600;padding:5px 13px;border-radius:5px;cursor:pointer}
-.seg button.on{background:var(--elev);color:#fff}
-.seg button:disabled{opacity:.35;cursor:not-allowed}
-.riskline{display:flex;align-items:center;gap:12px}
-.risknum{width:62px;background:var(--bg);border:1px solid var(--border);color:#fff;font-size:14px;font-weight:700;text-align:center;padding:6px;border-radius:6px}
-.risknum:focus{outline:none;border-color:var(--mode)}
-input[type=range]{-webkit-appearance:none;flex:1;height:4px;border-radius:99px;background:linear-gradient(90deg,var(--mode) var(--fill,20%),var(--elev) var(--fill,20%));outline:none}
-input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:#fff;border:3px solid var(--mode);cursor:pointer}
-.note{font-size:11px;color:var(--t3);line-height:1.5;margin:6px 0 12px}
-.inp{width:100%;background:var(--bg);border:1px solid var(--border);color:var(--t1);padding:8px 11px;border-radius:6px;font-size:12px;margin-bottom:8px}
-.inp:focus{outline:none;border-color:var(--mode)}
-.btn{padding:9px 16px;border-radius:6px;border:1px solid var(--border2);background:var(--elev);color:#fff;font-weight:600;font-size:12px;cursor:pointer}
-.btn.wide{width:100%}
-.btn.primary{background:var(--mode);border-color:var(--mode)}
-.btn:disabled{opacity:.35;cursor:not-allowed}
+/* calendar */
+.mcards{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px}
+.mc{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;backdrop-filter:blur(8px);cursor:pointer;transition:border-color .25s, transform .25s}
+.mc:hover{border-color:var(--acc);transform:translateY(-2px)}
+.mc.open{border-color:var(--acc);box-shadow:0 0 30px color-mix(in srgb,var(--acc) 14%,transparent)}
+.mc-top{display:flex;gap:14px;align-items:center}
+.mc-date{flex:none;width:64px;text-align:center;border:1px solid var(--line);border-radius:10px;padding:7px 0;background:var(--bg)}
+.mc-date .d1{font-family:var(--font-d);font-size:25px;color:#fff;line-height:1}
+.mc-date .d2{font-size:9px;letter-spacing:2px;color:var(--t3)}
+.mc .tt{font-weight:700;font-size:15px;color:#fff}
+.mc .ss{font-size:12px;color:var(--t2);margin-top:3px;line-height:1.5}
+.mc .cd{margin-left:auto;text-align:right}
+.mc .cd .a{font-size:10px;color:var(--t3);letter-spacing:1px}
+.mc .cd .b{font-family:var(--font-d);font-size:21px;color:var(--acc);letter-spacing:1px}
+.mc .imp{display:inline-block;font-size:9px;font-weight:800;letter-spacing:1.4px;padding:3px 8px;border-radius:4px;margin-top:7px}
+.imp.h{background:rgba(255,69,48,.15);color:var(--dn)}
+.imp.m{background:rgba(255,179,64,.14);color:var(--amber)}
+.mc .more{display:none;margin-top:12px;padding-top:12px;border-top:1px dashed var(--line);font-size:12.5px;color:var(--t2);line-height:1.6}
+.mc .more b{color:var(--acc2)}
+.mc.open .more{display:block}
 
-/* ===== footer ===== */
-.foot{padding:16px 22px 34px;color:var(--t3);font-size:11px;border-top:1px solid var(--border);margin-top:12px;display:flex;align-items:center;gap:8px}
-.foot .fmark{width:18px;height:18px;border-radius:5px;background:var(--panel2);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:10px}
-.foot b{color:var(--t2)}
-.empty{padding:22px 14px;text-align:center;color:var(--t3);font-size:12px;line-height:1.6}
-.empty b{color:var(--t2)}
+/* controls */
+.ctrl{display:grid;grid-template-columns:1.05fr .95fr;gap:14px}
+@media(max-width:900px){.ctrl{grid-template-columns:1fr}}
+.cc{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px;backdrop-filter:blur(8px)}
+.cc .cl{font-size:10px;letter-spacing:2.4px;color:var(--t3);font-weight:800;text-transform:uppercase;margin-bottom:10px}
+.seg{display:inline-flex;background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:3px}
+.seg button{border:0;background:transparent;color:var(--t2);font-size:12px;font-weight:700;padding:7px 16px;border-radius:7px;cursor:pointer;letter-spacing:1px;transition:.2s}
+.seg button.on{background:var(--acc);color:#04120c}
+.seg button:disabled{opacity:.3;cursor:not-allowed}
+.riskrow{display:flex;align-items:center;gap:14px}
+.risknum{width:70px;background:var(--bg);border:1px solid var(--line);color:#fff;font-size:17px;font-weight:800;text-align:center;padding:8px 4px;border-radius:9px}
+.risknum:focus{outline:none;border-color:var(--acc)}
+input[type=range]{-webkit-appearance:none;flex:1;height:5px;border-radius:99px;background:linear-gradient(90deg,var(--acc) var(--fill,20%),#1c2419 var(--fill,20%));outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:#fff;border:4px solid var(--acc);cursor:pointer;box-shadow:0 0 12px var(--acc)}
+.mnote{font-size:12px;color:var(--t2);line-height:1.6;margin:8px 0 16px}
+.mnote i{font-style:normal;color:var(--acc2)}
+.bigrow{display:flex;gap:10px;margin-top:6px}
+.btn-big{flex:1.6;padding:16px;border:0;border-radius:10px;background:linear-gradient(180deg,var(--acc),color-mix(in srgb,var(--acc) 72%,#000));color:#04120c;font-weight:800;font-size:15px;letter-spacing:2.5px;cursor:pointer;box-shadow:0 6px 30px color-mix(in srgb,var(--acc) 35%,transparent)}
+.btn-big:disabled{opacity:.35;cursor:not-allowed;box-shadow:none}
+.btn-choppa{flex:1;padding:16px;border:1px solid var(--dn);border-radius:10px;background:transparent;color:var(--dn);font-family:var(--font-d);font-size:19px;letter-spacing:2px;cursor:pointer}
+.btn-choppa:disabled{opacity:.3;cursor:not-allowed}
+.srow{display:flex;align-items:center;gap:12px;padding:10px 2px;border-bottom:1px dashed var(--line)}
+.srow:last-child{border-bottom:0}
+.srow .sq{width:10px;height:10px;border-radius:3px;flex:none;background:var(--t3)}
+.srow .sq.g{background:var(--teal);box-shadow:0 0 8px var(--teal)}
+.srow .sq.a{background:var(--amber);box-shadow:0 0 8px var(--amber)}
+.srow .sq.r{background:var(--dn)}
+.srow .n{font-weight:700;font-size:13.5px;color:#fff}
+.srow .d{font-size:11.5px;color:var(--t3)}
+.srow .v{margin-left:auto;font-size:10.5px;letter-spacing:1.6px;font-weight:800}
+.inp{width:100%;background:var(--bg);border:1px solid var(--line);color:var(--t1);padding:10px 12px;border-radius:9px;font-size:12.5px;margin-bottom:9px}
+.inp:focus{outline:none;border-color:var(--acc)}
+.btn{width:100%;padding:11px;border-radius:9px;border:1px solid var(--acc);background:transparent;color:var(--acc);font-weight:800;font-size:12.5px;letter-spacing:1.6px;cursor:pointer;transition:.2s}
+.btn:hover{background:var(--acc);color:#04120c}
+.knote{font-size:12px;color:var(--t3);margin-top:10px;line-height:1.5}
+.mayday{display:none;margin:0 auto 20px;max-width:1180px;padding:11px 18px;border:1px solid var(--dn);border-radius:10px;background:rgba(255,69,48,.08);color:#ffb1a8;font-size:13px;width:calc(100% - 44px)}
+.mayday.show{display:block}
+
+/* footer */
+footer{margin-top:70px;border-top:1px solid var(--line2);padding:34px 22px 44px;text-align:center}
+footer .f1{font-family:var(--font-d);font-size:30px;letter-spacing:6px;color:#fff}
+footer .f1 em{font-style:normal;color:var(--acc)}
+footer .f2{font-size:12px;color:var(--t3);margin-top:8px}
+footer .f2 b{color:var(--t2)}
+footer .choppa{margin-top:18px;font-family:var(--font-d);font-size:17px;letter-spacing:4px;color:var(--t3)}
+footer .choppa i{font-style:normal;color:var(--heat2)}
 </style>
 </head>
 <body data-mode="practice">
 
-<div class="tbar">
-  <div class="brand">
-    <div class="bm">&#129417;</div>
-    <div><b>PREDATOR</b><br><small>catalyst engine</small></div>
+<nav class="nav" id="nav">
+  <div class="nm">PRED<i>A</i>TOR</div>
+  <a href="#brief">The Brief</a><a href="#record">The Record</a><a href="#calendar">The Calendar</a><a href="#controls">Mission Control</a>
+  <div class="sp"></div>
+  <div class="st"><span class="dot" id="nav-dot"></span><span id="nav-status">STANDBY</span></div>
+</nav>
+
+<div class="mayday" id="alertbar"></div>
+
+<!-- ============ HERO ============ -->
+<header class="hero" id="top">
+  <div class="bg"></div><div class="bg2"></div><div class="fog"></div><div class="beams"></div>
+  <div class="kicker" id="kicker">The hunt is on</div>
+  <h1 class="h1">PRED<em>A</em>TOR</h1>
+  <p class="tag">An autonomous engine that hunts <b>NIFTY &amp; SENSEX options</b> — but only on the wildest days of the calendar.
+  Paper mode until it earns blood. <b>No overnight positions. No revenge trades. No mercy for chop.</b></p>
+  <div class="hero-cta">
+    <button class="btn-hero" onclick="document.getElementById('controls').scrollIntoView()">START THE HUNT</button>
+    <button class="btn-hero ghost" onclick="document.getElementById('brief').scrollIntoView()">HOW IT HUNTS</button>
   </div>
-  <div class="quotechip"><span class="sym">NIFTY</span><span class="qv">engine</span><span class="qc" id="q-status" style="color:var(--t3)">STANDBY</span></div>
-  <div class="quotechip"><span class="sym" id="q-next-sym">—</span><span class="qv">next hunt</span><span class="qc" id="q-next-in" style="color:var(--blue)">—</span></div>
-  <div class="spacer"></div>
-  <button class="tbtn start" id="start">&#9654; START</button>
-  <button class="tbtn abort" id="stop" disabled>ABORT</button>
-  <div class="clockbox" id="clock"></div>
-</div>
+  <div class="reticle" id="reticle">
+    <svg viewBox="0 0 520 150">
+      <g class="track" fill="none" stroke-width="1.6">
+        <path d="M60 20 L110 20 M60 20 L60 52"/>
+        <path d="M460 20 L410 20 M460 20 L460 52"/>
+        <path d="M60 130 L110 130 M60 130 L60 98"/>
+        <path d="M460 130 L410 130 M460 130 L460 98"/>
+      </g>
+      <path class="track" d="M260 58 L286 88 L260 118 L234 88 Z" fill="none" stroke-width="1.6"/>
+      <text x="120" y="30">TARGET SCAN</text>
+      <text x="330" y="30" id="ret-date">—</text>
+      <text class="big" x="260" y="83" text-anchor="middle" id="ret-name">STANDBY</text>
+      <text x="130" y="112" id="ret-sub">waiting for the next catalyst window</text>
+    </svg>
+  </div>
+  <div class="cue">SCROLL</div>
+</header>
 
-<div class="alert" id="alertbar"></div>
-
-<div class="shell">
-  <div class="main">
-
-    <!-- data window -->
-    <div class="dwindow">
-      <div class="dw-top">
-        <span class="dw-sym">NIFTY</span>
-        <span class="dw-sub">catalyst-day options engine · <span id="dw-mode">PRACTICE</span></span>
-        <span class="dw-flag" id="dw-flag">PAPER</span>
-      </div>
-      <div class="dw-vals">
-        <div class="dwv"><div class="l">Day grade</div><div class="v" id="dw-grade">—</div></div>
-        <div class="dwv"><div class="l">Dhan funds</div><div class="v" id="dw-funds">—</div></div>
-        <div class="dwv"><div class="l">Net P&amp;L</div><div class="v" id="dw-pnl">—</div></div>
-        <div class="dwv"><div class="l">Hunts traded</div><div class="v" id="dw-trades">0</div></div>
-        <div class="dwv"><div class="l">Win rate</div><div class="v" id="dw-wr">—</div></div>
-      </div>
-      <div class="dw-sentence" id="sentence">…</div>
+<main>
+<!-- ============ BRIEF ============ -->
+<section id="brief">
+  <div class="shead reveal">
+    <div class="sk">Chapter 01</div>
+    <h2>THE BRIEF</h2>
+    <p>Most days the market is noise. A handful of days each month, it moves like a stampede — rate decisions, expiries, overnight US shocks, heavyweight earnings. This engine sleeps on ordinary days and only wakes for those. Here is exactly what happens on a hunt day.</p>
+  </div>
+  <div class="brief">
+    <div class="ph reveal">
+      <img src="https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=1100&q=70&fm=jpg" alt="misty jungle" onerror="this.style.display='none'">
+      <div class="cap"><b>THE WAITING GAME</b>The wolf doesn't chase. It marks the first 15 minutes, draws the range, and lets the market walk into the open.</div>
     </div>
-
-    <!-- equity pane -->
-    <div class="pane">
-      <div class="pane-h"><span class="tabbtn">PAPER EQUITY</span><span class="right" id="eq-note">virtual fills · real market data</span></div>
-      <div class="pane-b" id="eq-body"><svg class="eq" viewBox="0 0 900 150" preserveAspectRatio="none"></svg></div>
-    </div>
-
-    <!-- strategy tester -->
-    <div class="pane">
-      <div class="pane-h"><span class="tabbtn">STRATEGY TESTER</span><span class="right">paper &amp; live record · vs backtest</span></div>
-      <div class="pane-b" style="display:grid;grid-template-columns:1fr 1fr;gap:0 34px">
-        <div>
-          <div class="ctl-l" style="margin-bottom:2px">Live paper record</div>
-          <div id="st-paper"></div>
-        </div>
-        <div>
-          <div class="ctl-l" style="margin-bottom:2px">Backtest lab</div>
-          <div id="st-bt"></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- calendar -->
-    <div class="pane">
-      <div class="pane-h"><span class="tabbtn">HUNT CALENDAR</span><span class="right">tap a row for what it means · red pill = high impact</span></div>
-      <table class="cal">
-        <thead><tr><th style="width:110px">Date</th><th>Event</th><th style="width:100px">Time</th><th style="width:96px">Impact</th><th style="width:90px">In</th><th style="width:26px"></th></tr></thead>
-        <tbody id="cal-body"></tbody>
-      </table>
-    </div>
-
-    <!-- trades -->
-    <div class="pane">
-      <div class="pane-h"><span class="tabbtn">ACCOUNT HISTORY</span><span class="right" id="tr-count"></span></div>
-      <table class="cal">
-        <thead><tr><th>Date</th><th>Hunt</th><th>Type</th><th>Side</th><th>Strike</th><th style="text-align:right">Net P&amp;L</th></tr></thead>
-        <tbody id="trades-body"></tbody>
-      </table>
-    </div>
-
-    <!-- controls -->
-    <div class="pane">
-      <div class="pane-h"><span class="tabbtn">CONTROLS</span><span class="right">governors always on</span></div>
-      <div class="pane-b ctl-grid">
-        <div>
-          <div class="ctl-l">Hunting ground</div>
-          <div class="seg"><button id="m-in" class="on">NIFTY</button><button id="m-sx">SENSEX</button><button id="m-us" disabled title="RBI LRS law blocks US options for Indian residents">US · SPY (locked)</button></div>
-          <div class="note">Autopilot picks the ground automatically: NIFTY on its event days, SENSEX on Thursdays (weekly expiry). Manual override here.</div>
-          <div class="ctl-l" style="margin-top:14px">Max loss per trade — <span id="riskshow" style="color:var(--mode)">5%</span></div>
-          <div class="riskline">
-            <input type="number" class="risknum" id="risknum" min="1" max="25" value="5">
-            <input type="range" id="risk" min="1" max="25" value="5">
-          </div>
-          <div class="note">Preset 5%. Worst case per trade = this % of the account, then the engine walks away. Stop −55% · TP1 2x (book 40%) · runner to 25x · flat by 15:20 IST · ₹60 est. costs/trade · ruin floor −50% · 2 loss-days = forced rest.</div>
-          <div class="ctl-l">Mode</div>
-          <div class="seg"><button id="mm-practice" class="on">PRACTICE</button><button id="mm-live">REAL MONEY</button></div>
-          <div class="note" id="livewarn" style="display:none;color:#f1a0a0">&#9888; Real orders will hit your Dhan account. Confirm dialog + fresh token required.</div>
-        </div>
-        <div>
-          <div class="ctl-l">System status</div>
-          <div id="ctl-health" style="margin-bottom:6px"></div>
-          <div class="ctl-l" style="margin-top:14px">Keys &amp; config</div>
-          <input class="inp" id="k-client" placeholder="Dhan client ID">
-          <input class="inp" id="k-token" type="password" placeholder="Dhan access token (auto-minted — only if overriding)">
-          <input class="inp" id="k-tgbt" type="password" placeholder="Telegram bot token (@BotFather)">
-          <input class="inp" id="k-tgchat" placeholder="Telegram chat ID">
-          <button class="btn primary wide" id="save-keys">SAVE KEYS</button>
-          <div class="note" id="keystatus" style="margin-top:9px">checking…</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="foot">
-      <span class="fmark">&#129417;</span>
-      <span><b>PREDATOR</b> · autonomous catalyst-day options engine · paper mode until proven · powered by <b>GLM 5.3 Flash</b></span>
+    <div class="tline reveal">
+      <div class="tstep"><div class="tt">08:30</div><div class="tx"><div class="a">The morning brief</div><div class="b">Autopilot reads the calendar, overnight headlines and India VIX, then grades the day <i>A / B / C</i>. A = full risk. B = half. <i>C — the wolf stays in the trees.</i></div></div></div>
+      <div class="tstep"><div class="tt">09:07</div><div class="tx"><div class="a">Auto-arm</div><div class="b">If the day passed, the engine arms itself. <i>Practice mode needs nothing. Live needs a fresh token + your confirmation.</i></div></div></div>
+      <div class="tstep"><div class="tt">09:15</div><div class="tx"><div class="a">The impulse range</div><div class="b">First 15 minutes get measured. A range under 0.15% = chop — <i>no trade, wolf walks away.</i></div></div></div>
+      <div class="tstep"><div class="tt">BREAK</div><div class="tx"><div class="a">The strike</div><div class="b">Price breaks the range AND the news agrees → buy the <i>ATM option</i>. Calls above the range, puts below. News disagrees → vetoed.</div></div></div>
+      <div class="tstep"><div class="tt">MANAGE</div><div class="tx"><div class="a">Stop · TP1 · Runner</div><div class="b">Stop at −55% of premium. Book 40% at 2×. The rest runs for <i>25×</i> or trails — this runner is where the big money lives.</div></div></div>
+      <div class="tstep"><div class="tt">15:20</div><div class="tx"><div class="a">Flatten. Always.</div><div class="b">Everything closes. <i>No overnight holds, ever.</i> The result lands in the record the same evening.</div></div></div>
     </div>
   </div>
+</section>
 
-  <!-- ============ SIDEBAR ============ -->
-  <div class="sidebar">
-    <div class="wl">
-      <div class="wl-h">SYSTEM<span class="r">status</span></div>
-      <div id="sb-health"></div>
+<!-- ============ RECORD ============ -->
+<section id="record">
+  <div class="shead reveal">
+    <div class="sk">Chapter 02</div>
+    <h2>THE RECORD</h2>
+    <p>Every completed hunt lands here — practice and real, net of estimated costs. This report card is the only thing that decides when real money gets unlocked. <span style="color:var(--t3)">("If it bleeds, we can kill it.")</span></p>
+  </div>
+  <div class="record-grid">
+    <div class="rc reveal"><div class="l">Net P&amp;L</div><div class="v" id="r-pnl">—</div><div class="s" id="r-pnl-s">waiting for the first hunt</div></div>
+    <div class="rc reveal"><div class="l">Hunts completed</div><div class="v" id="r-trades">0</div><div class="s" id="r-trades-s">of ~30 candidate days left in 2026</div></div>
+    <div class="rc reveal"><div class="l">Win rate</div><div class="v" id="r-wr">—</div><div class="s">few big wins pay for many small losses</div></div>
+    <div class="rc reveal"><div class="l">Next hunt</div><div class="v" style="font-size:30px" id="r-next">—</div><div class="s" id="r-next-s"></div></div>
+  </div>
+  <div class="eqwrap reveal">
+    <div class="eh"><span class="a">THERMAL TRACE — EQUITY CURVE</span><span class="b" id="eq-note">virtual fills · real market data</span></div>
+    <svg class="thermal" id="eqsvg" viewBox="0 0 1000 170" preserveAspectRatio="none"></svg>
+  </div>
+  <div class="killsheet reveal">
+    <table class="ks">
+      <thead><tr><th>Date</th><th>Hunt</th><th>Type</th><th>Side</th><th>Strike</th><th style="text-align:right">Net P&amp;L</th></tr></thead>
+      <tbody id="ks-body"></tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ============ CALENDAR ============ -->
+<section id="calendar">
+  <div class="shead reveal">
+    <div class="sk">Chapter 03</div>
+    <h2>THE CALENDAR</h2>
+    <p>Every candidate day ahead. Tap one for the full story. Red = major impact. The grader decides each morning — the calendar only nominates.</p>
+  </div>
+  <div class="mcards" id="mcards"></div>
+</section>
+
+<!-- ============ CONTROLS ============ -->
+<section id="controls">
+  <div class="shead reveal">
+    <div class="sk">Chapter 04</div>
+    <h2>MISSION CONTROL</h2>
+    <p>Everything a hunt needs, in one place. The governors below are always on — sizing guard, red-flag veto, cool-off, ruin floor.</p>
+  </div>
+  <div class="ctrl">
+    <div class="cc reveal">
+      <div class="cl">Combat mode</div>
+      <div class="seg"><button id="mm-practice" class="on">PRACTICE</button><button id="mm-live">REAL MONEY</button></div>
+      <div class="mnote" id="livewarn" style="display:none;color:#ffb1a8">&#9888; Real orders will hit your Dhan account. A confirm dialog stands guard.</div>
+      <div class="cl" style="margin-top:16px">Hunting ground</div>
+      <div class="seg"><button id="m-in" class="on">NIFTY</button><button id="m-sx">SENSEX</button><button id="m-us" disabled title="RBI LRS law blocks US options for Indian residents">US · SPY (locked)</button></div>
+      <div class="mnote">Autopilot picks the ground for you: NIFTY on event days, SENSEX on Thursday expiries. <i>Lot of 20 on SENSEX = cheaper shots.</i></div>
+      <div class="cl">Max loss per hunt — <span id="riskshow" style="color:var(--acc)">5%</span></div>
+      <div class="riskrow">
+        <input type="number" class="risknum" id="risknum" min="1" max="25" value="5">
+        <input type="range" id="risk" min="1" max="25" value="5">
+      </div>
+      <div class="mnote">Worst case per trade = this % of the account. Then the engine walks away. <i>Stop −55% · TP1 2× (book 40%) · runner 25× · flat 15:20 · ₹60 est. costs · ruin floor −50% · 2 loss-days = forced rest.</i></div>
+      <div class="bigrow">
+        <button class="btn-big" id="start">&#9654; START THE HUNT</button>
+        <button class="btn-choppa" id="stop" disabled>GET TO THE CHOPPA</button>
+      </div>
     </div>
-    <div class="wl">
-      <div class="wl-h">HUNTS<span class="r" id="sb-ev-count"></span></div>
-      <div id="sb-events"></div>
-    </div>
-    <div class="wl">
-      <div class="wl-h">ACTIVATION LOG<span class="r">days awake</span></div>
-      <div id="sb-activity"></div>
+    <div class="cc reveal">
+      <div class="cl">System status</div>
+      <div id="sys-rows"></div>
+      <div class="cl" style="margin-top:18px">Keys &amp; signals</div>
+      <input class="inp" id="k-client" placeholder="Dhan client ID">
+      <input class="inp" id="k-token" type="password" placeholder="Dhan access token (auto-minted daily — override only)">
+      <input class="inp" id="k-tgbt" type="password" placeholder="Telegram bot token (from @BotFather)">
+      <input class="inp" id="k-tgchat" placeholder="Telegram chat ID">
+      <button class="btn" id="save-keys">SAVE KEYS</button>
+      <div class="knote" id="keystatus">checking…</div>
+      <div class="knote" id="funds-line" style="margin-top:14px"></div>
     </div>
   </div>
-</div>
+</section>
+</main>
+
+<footer>
+  <div class="f1">PRED<em>A</em>TOR</div>
+  <div class="f2">autonomous catalyst-day options engine · paper mode until proven · powered by <b>GLM 5.3 Flash</b></div>
+  <div class="choppa">IF IT BLEEDS… <i>WE CAN KILL IT.</i></div>
+</footer>
 
 <script>
 const $=id=>document.getElementById(id);
 const esc=s=>(s??'').toString().replace(/</g,'&lt;');
 const inr=n=>Number(n).toLocaleString('en-IN',{maximumFractionDigits:0});
-function tickClock(){
-  const now=new Date();
-  const ist=new Date(now.getTime()+(330+now.getTimezoneOffset())*60000);
-  $('clock').textContent=ist.toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'})+' · '+ist.toLocaleTimeString('en-IN',{hour12:false});
-}
-setInterval(tickClock,1000);tickClock();
+function tickClock(){}
+function istNow(){const n=new Date();return new Date(n.getTime()+(330+n.getTimezoneOffset())*60000);}
+
+/* nav on scroll + reveals */
+const nav=$('nav');
+addEventListener('scroll',()=>{nav.classList.toggle('show',scrollY>innerHeight*0.55)},{passive:true});
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('in')}),{threshold:.12});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
 
 /* mode */
 let mode='practice';
@@ -296,8 +375,6 @@ function setMode(m){
   mode=m;document.body.dataset.mode=m;
   $('mm-practice').className=m==='practice'?'on':'';
   $('mm-live').className=m==='live'?'on':'';
-  $('dw-mode').textContent=m==='live'?'REAL MONEY':'PRACTICE';
-  $('dw-flag').textContent=m==='live'?'LIVE':'PAPER';
   $('livewarn').style.display=m==='live'?'block':'none';
 }
 $('mm-practice').onclick=()=>setMode('practice');
@@ -320,13 +397,13 @@ async function api(path,body){
 }
 $('save-keys').onclick=async()=>{
   const body={risk_pct:Number(risknum.value)/100};
-  if($('k-client').value.trim())body.dhan_client_id=$('k-client').value.trim();
-  if($('k-token').value.trim())body.dhan_access_token=$('k-token').value.trim();
-  if($('k-tgbt').value.trim())body.telegram_bot_token=$('k-tgbt').value.trim();
-  if($('k-tgchat').value.trim())body.telegram_chat_id=$('k-tgchat').value.trim();
+  ['k-client','k-token','k-tgbt','k-tgchat'].forEach((id,i)=>{
+    const v=$(id).value.trim(); if(!v)return;
+    body[['dhan_client_id','dhan_access_token','telegram_bot_token','telegram_chat_id'][i]]=v;
+  });
   const r=await api('/api/secrets',body);
   if(r.status===401){$('keystatus').textContent='wrong engine key';return;}
-  ['k-client','k-token','k-tgbt','k-tgchat'].forEach(i=>$(i).value='');
+  ['k-client','k-token','k-tgbt','k-tgchat'].forEach(id=>$(id).value='');
   loadSecrets();
 };
 function loadSecrets(){
@@ -343,75 +420,51 @@ $('start').onclick=async()=>{
 };
 $('stop').onclick=async()=>{await api('/api/stop');setTimeout(refresh,900);};
 
-/* equity chart TV-style */
-function eqChart(vals){
-  const svg=$('eq-body').querySelector('svg');
-  if(!vals||vals.length<2){svg.innerHTML='';$('eq-note').textContent='curve appears with 2+ completed hunts';return;}
-  const w=900,h=150,min=Math.min(...vals),max=Math.max(...vals),rng=(max-min)||1;
-  const pts=vals.map((v,i)=>`${(i/(vals.length-1)*w).toFixed(1)},${(h-14-((v-min)/rng)*(h-28)).toFixed(1)}`);
-  const up=vals[vals.length-1]>=vals[0], col=up?'#26a69a':'#ef5350';
+/* thermal equity trace */
+function thermal(vals){
+  const svg=$('eqsvg');
+  if(!vals||vals.length<2){svg.innerHTML=`<text x="500" y="90" text-anchor="middle" fill="#6e6a5f" font-size="13" letter-spacing="3">THE TRACE APPEARS WITH 2+ COMPLETED HUNTS</text>`;$('eq-note').textContent='virtual fills · real market data';return;}
+  const w=1000,h=170,min=Math.min(...vals),max=Math.max(...vals),rng=(max-min)||1;
+  const pts=vals.map((v,i)=>`${(i/(vals.length-1)*w).toFixed(1)},${(h-20-((v-min)/rng)*(h-40)).toFixed(1)}`);
+  const up=vals[vals.length-1]>=vals[0], col=up?'#3fd4a4':'#ff5a4e';
   svg.innerHTML=`
-    <defs><linearGradient id="fillg" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="${col}" stop-opacity=".25"/><stop offset="1" stop-color="${col}" stop-opacity="0"/>
-    </linearGradient></defs>
-    ${[0.25,0.5,0.75].map(f=>`<line x1="0" x2="${w}" y1="${h*f}" y2="${h*f}" stroke="#2a2e39" stroke-width="1" stroke-dasharray="2 4"/>`).join('')}
-    <polygon points="0,${h} ${pts.join(' ')} ${w},${h}" fill="url(#fillg)"/>
-    <polyline points="${pts.join(' ')}" fill="none" stroke="${col}" stroke-width="2" stroke-linejoin="round"/>`;
+    <defs><linearGradient id="tg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${col}" stop-opacity=".3"/><stop offset="1" stop-color="${col}" stop-opacity="0"/></linearGradient></defs>
+    ${[0.3,0.6].map(f=>`<line x1="0" x2="${w}" y1="${h*f}" y2="${h*f}" stroke="rgba(150,200,160,.1)" stroke-dasharray="2 6"/>`).join('')}
+    <polygon points="0,${h} ${pts.join(' ')} ${w},${h}" fill="url(#tg)"/>
+    <polyline points="${pts.join(' ')}" fill="none" stroke="${col}" stroke-width="2.2" style="filter:drop-shadow(0 0 6px ${col})"/>`;
   $('eq-note').textContent=`${vals.length} hunts · net ₹${inr(vals[vals.length-1])}`;
 }
 
-/* strategy tester rows */
-function stRows(rows){
-  return `<div class="st-grid">${rows.map(([k,v,cls])=>`<div class="strow"><span class="k">${k}</span><span class="dots"></span><span class="v ${cls||''}">${v}</span></div>`).join('')}</div>`;
+/* calendar cards */
+let lastData=null,openCard=null;
+function toggleCard(d){openCard=openCard===d?null:d;if(lastData)renderCards();}
+function impOf(title){
+  return ['FOMC','RBI','Budget','CPI','Expiry','Results'].some(k=>title.toLowerCase().includes(k.toLowerCase()))?['h','HIGH IMPACT']:['m','MEDIUM'];
 }
-function testerStats(p){
-  let pf='—',dd='—';
-  if(p.curve&&p.curve.length>1){
-    const seq=[];let eq=0;p.journal_full?.slice().reverse().forEach(t=>{eq+=Number(t.pnl||0);seq.push(eq)});
-    const peak=Math.max(...seq),maxdd=Math.min(...seq.map(v=>v-peak));
-    dd=maxdd<0?('−₹'+inr(-maxdd)):'₹0';
-  }
-  if(p.journal_full){
-    const wins=p.journal_full.filter(t=>Number(t.pnl||0)>0).reduce((a,t)=>a+Number(t.pnl),0);
-    const loss=Math.abs(p.journal_full.filter(t=>Number(t.pnl||0)<0).reduce((a,t)=>a+Number(t.pnl),0));
-    pf=loss>0?(wins/loss).toFixed(2):(wins>0?'∞':'—');
-  }
-  return [
-    ['Total trades',p.total],
-    ['Win rate',p.total?((p.win_rate*100).toFixed(0)+'%'):'—'],
-    ['Net profit','₹'+inr(p.total_pnl||0),p.total_pnl>=0?'up':'dn'],
-    ['Avg / trade',p.total?('₹'+inr(p.total_pnl/p.total)):'—'],
-    ['Profit factor',pf],
-    ['Max drawdown',dd],
-    ['Real / practice',`${p.live_count||0} / ${p.paper_count||0}`],
-  ];
-}
-
-/* calendar rows */
-let openDate=null;
-function toggleCal(d){openDate=openDate===d?null:d;if(lastData)renderCal();}
-function impactOf(title){
-  const high=['FOMC','RBI','Budget','CPI','Expiry'].some(k=>title.toLowerCase().includes(k.toLowerCase()));
-  return high?['imp-high','HIGH']:['imp-med','MED'];
-}
-function renderCal(){
-  const d=lastData;
+function renderCards(){
+  const d=lastData;if(!d)return;
   const all=[...(d.events_in||[]),...(d.events_us||[])].sort((a,b)=>a.date.localeCompare(b.date));
-  $('cal-body').innerHTML=all.map(e=>{
+  $('mcards').innerHTML=all.map(e=>{
+    const dt=new Date(e.date+'T00:00:00');
     const days=Math.round((new Date(e.date)-new Date(d.today))/86400000);
-    const [impCls,impTxt]=impactOf(e.title);
-    const open=openDate===e.date;
-    return `<tr class="rowh ${open?'open':''}" onclick="toggleCal('${e.date}')">
-      <td class="mono" style="color:var(--t2)">${e.date.slice(5)} ${new Date(e.date+'T00:00:00').toLocaleString('en',{weekday:'short'})}</td>
-      <td><b style="color:#fff">${esc(e.title)}</b>${open?`<div class="why"><b>What:</b> ${esc(e.what)}<br><b>Why it matters:</b> ${esc(e.why)}</div>`:`<div style="color:var(--t3);font-size:11px">${esc(e.name)}</div>`}</td>
-      <td style="color:var(--t2)">${esc(e.time)} ${e.market==='US'?'ET':'IST'}</td>
-      <td><span class="ev-impact ${impCls}">${impTxt}</span></td>
-      <td class="mono" style="color:var(--blue);font-weight:700">${days===0?'TODAY':'in '+days+'d'}</td>
-      <td><span class="caret">&#9654;</span></td></tr>`;
+    const[impCls,impTxt]=impOf(e.title);
+    const open=openCard===e.date;
+    return `<div class="mc ${open?'open':''}" onclick="toggleCard('${e.date}')">
+      <div class="mc-top">
+        <div class="mc-date"><div class="d1">${dt.getDate()} ${dt.toLocaleString('en',{month:'short'}).toUpperCase()}</div><div class="d2">${dt.getFullYear()}</div></div>
+        <div style="min-width:0">
+          <div class="tt">${esc(e.title)}</div>
+          <div class="ss" style="color:var(--t3)">${esc(e.time)} ${e.market==='US'?'ET':'IST'} · ${e.market}</div>
+          <span class="imp ${impCls}">${impTxt}</span>
+        </div>
+        <div class="cd"><div class="a">${dt.toLocaleString('en',{weekday:'short'}).toUpperCase()}</div><div class="b">${days===0?'TODAY':days+'D'}</div></div>
+      </div>
+      <div class="more"><b>What:</b> ${esc(e.what)}<br><br><b>Why it matters:</b> ${esc(e.why)}</div>
+    </div>`;
   }).join('');
 }
 
-let lastData=null;
+let prevPhase='';
 async function refresh(){
   let d,h,act;
   try{
@@ -423,102 +476,75 @@ async function refresh(){
   }catch(e){return;}
   lastData=d;
 
-  /* topbar quotes */
-  const PH={standby:['STANDBY','#787b86'],starting:['LAUNCHING','#ff9800'],watching:['ARMED','#2962ff'],in_position:['IN POSITION','#26a69a'],managing:['RIDING RUNNER','#26a69a'],done:['SESSION DONE','#787b86']};
-  const[label,color]=PH[d.phase]||PH.standby;
-  $('q-status').textContent=label;$('q-status').style.color=color;
+  const PH={standby:['STANDBY',''],starting:['LAUNCHING','a'],watching:['ARMED · WATCHING','g'],in_position:['IN POSITION','g'],managing:['RIDING RUNNER','g'],done:['SESSION DONE','']};
+  const[label,cls]=PH[d.phase]||PH.standby;
+  $('nav-status').textContent=label;
+  $('nav-dot').className='dot '+(cls||'');
+  if(label!==prevPhase){$('kicker').textContent=label==='STANDBY'?'The hunt is on':label.toLowerCase();prevPhase=label;}
+
+  /* reticle */
   const nxt=(d.events_in||[])[0];
-  if(nxt){
-    const days=Math.round((new Date(nxt.date)-new Date(d.today))/86400000);
-    $('q-next-sym').textContent=nxt.title.split('(')[0].slice(0,22);
-    $('q-next-in').textContent=`${nxt.date.slice(5)} · ${days===0?'TODAY':'in '+days+'d'}`;
-  }
-
-  /* data window */
-  const pp=d.paper||{};
-  $('dw-pnl').textContent=pp.total?('₹'+inr(pp.total_pnl)):'—';
-  $('dw-pnl').className='v '+(pp.total?(pp.total_pnl>=0?'up':'dn'):'');
-  $('dw-trades').textContent=pp.total;
-  $('dw-wr').textContent=pp.total?((pp.win_rate*100).toFixed(0)+'%'):'—';
-  const dh=d.dhan||{};
-  if(dh.connected){
-    $('dw-funds').textContent='₹'+inr(dh.available);
-    $('dw-funds').className='v '+(Number(dh.available)<1000?'md':'');
-  }else{$('dw-funds').textContent='—';}
-  $('start').disabled=d.running;$('stop').disabled=!d.running;
-
   if(d.running){
-    $('sentence').innerHTML=`Wolf is <b>${label.toLowerCase()}</b> — ${esc(d.last_action||'managing the session')}.`;
-  }else if(d.today_event){
-    $('sentence').innerHTML=`Today is a <b>hunting day</b> — ${esc(d.today_event.title)} at ${esc(d.today_event.time)} IST. Engine on standby; auto-arms 09:07 if autopilot is on.`;
+    $('ret-name').textContent='TARGET LOCKED';
+    $('ret-sub').textContent=d.last_action||'managing the session';
+    $('ret-date').textContent=(d.today||'').slice(5);
   }else if(nxt){
     const days=Math.round((new Date(nxt.date)-new Date(d.today))/86400000);
-    $('sentence').innerHTML=`Quiet session — no forced moves. Next hunt <b>${esc(nxt.title)}</b> in <b>${days} day${days===1?'':'s'}</b> (${esc(nxt.date)}).`;
+    $('ret-name').textContent=nxt.title.split('(')[0].trim().toUpperCase().slice(0,20);
+    $('ret-sub').textContent=`tracking — ${nxt.date} · ${days===0?'TODAY':'in '+days+' day'+(days===1?'':'s')}`;
+    $('ret-date').textContent=nxt.date.slice(5);
+  }else{
+    $('ret-name').textContent='SCANNING';
+    $('ret-sub').textContent='no targets on the calendar horizon';
+    $('ret-date').textContent='—';
   }
-  fetch('/results/day_rating.json').then(r=>r.ok?r.json():null).then(rt=>{
-    if(rt&&rt.date===d.today){
-      $('dw-grade').innerHTML=`<span class="g${rt.grade}">${rt.grade}</span> · risk ×${rt.multiplier}`;
-      $('dw-grade').title=(rt.reasons||[]).join(' · ');
-    }else{$('dw-grade').textContent='—';$('dw-grade').title='no rating yet';}
-  }).catch(()=>{$('dw-grade').textContent='—';});
 
-  /* sidebar system */
-  const rows=[['Autopilot',h.autopilot?'on':'off','8:30 brief · 09:07 arm'],
-              ['News radar',h.sentinel?'on':'off','headlines · red-flag veto'],
-              ['Wolf engine',(h.engine||d.running)?'on':(h.autopilot?'idle':'off'),'entries · exits']];
-  $('sb-health').innerHTML=rows.map(([n,s,ds])=>`<div class="wl-row"><span class="sq ${s}"></span><span class="nm">${n}</span><span class="rt" style="font-weight:400;font-size:10.5px;color:var(--t3)">${ds}</span></div>`).join('');
-  $('ctl-health').innerHTML=rows.map(([n,s,ds])=>`<div class="strow"><span class="k">${n}</span><span class="dots"></span><span class="v" style="color:${s==='on'?'var(--up)':s==='idle'?'var(--orange)':'var(--dn)'}">${s.toUpperCase()}</span></div>`).join('');
+  /* record */
+  const pp=d.paper||{};
+  $('r-pnl').textContent=pp.total?('₹'+inr(pp.total_pnl)):'—';
+  $('r-pnl').className='v '+(pp.total?(pp.total_pnl>=0?'up':'dn'):'');
+  $('r-trades').textContent=pp.total;
+  $('r-trades-s').textContent=pp.total?`${pp.live_count||0} real · ${pp.paper_count||0} practice`:'first hunt writes history';
+  $('r-wr').textContent=pp.total?((pp.win_rate*100).toFixed(0)+'%'):'—';
+  if(nxt){
+    const days=Math.round((new Date(nxt.date)-new Date(d.today))/86400000);
+    $('r-next').textContent=days===0?'TODAY':days+'d';
+    $('r-next-s').textContent=`${nxt.date} · ${esc(nxt.title.slice(0,26))}`;
+  }
+  thermal(pp.curve);
 
-  /* sidebar hunts */
-  const all=[...(d.events_in||[]),...(d.events_us||[])].sort((a,b)=>a.date.localeCompare(b.date));
-  $('sb-ev-count').textContent=all.length+' scheduled';
-  $('sb-events').innerHTML=all.slice(0,7).map(e=>{
-    const days=Math.round((new Date(e.date)-new Date(d.today))/86400000);
-    const[impCls,impTxt]=impactOf(e.title);
-    return `<div class="wl-row"><span class="ev-date">${e.date.slice(5)}</span><span class="ev-nm">${esc(e.title.slice(0,24))}</span><span class="ev-impact ${impCls}" style="margin-left:auto">${impTxt}</span><span class="rt" style="color:var(--blue)">${days===0?'TODAY':days+'d'}</span></div>`;
-  }).join('');
-
-  /* sidebar activity */
-  const ss=(act.sessions||[]).slice(0,8);
-  $('sb-activity').innerHTML=ss.length?ss.map(s=>{
-    const map={armed:['on','ARMED'],traded:['on','TRADED'],started:['idle','STARTED'],quiet:['off','quiet']};
-    const[c,lbl]=map[s.status]||['off','—'];
-    return `<div class="wl-row"><span class="sq ${c}"></span><span class="ev-date">${esc(s.date)}</span><span class="nm" style="font-size:11px">${esc(s.event||lbl)}</span><span class="rt" style="font-weight:400;color:var(--t3);font-size:10.5px">${lbl}</span></div>`;
-  }).join(''):'<div class="wl-row"><span class="ds">no activations yet — fills as services run</span></div>';
-
-  renderCal();
-
-  /* equity */
-  eqChart(pp.curve);
-
-  /* strategy tester */
-  $('st-paper').innerHTML=pp.total?stRows(testerStats(pp)):'<div class="empty">no completed hunts yet — first: Sep 29 expiry</div>';
+  /* kill sheet */
   const bt=d.backtest||{};
-  $('st-bt').innerHTML=(bt.summary&&bt.summary.trades)?stRows([
-    ['Replayed days',bt.total],
-    ['Trades',bt.summary.trades],
-    ['Win rate',(bt.summary.win_rate*100).toFixed(0)+'%'],
-    ['Avg R',bt.summary.avg_r,(bt.summary.avg_r>=0?'up':'dn')],
-    ['Return',bt.summary.return_multiple+'x',(bt.summary.return_multiple>=1?'up':'dn')],
-    ['Curve span',(bt.curve||[]).length+' pts'],
-  ]):'<div class="empty">no backtest on record</div>';
-
-  /* account history */
   const btRows=(bt.trades||[]).map(t=>({ts:t.date,event:t.event,src:'backtest',side:t.side,strike:t.strike,pnl:Number(t.pnl||0)}));
   const ppRows=(pp.journal_full||[]).map(t=>({ts:(t.timestamp||'').slice(0,10),event:t.event,src:(t.mode||'').toUpperCase(),side:t.side,strike:t.strike,pnl:Number(t.pnl||0)}));
   const merged=[...ppRows,...btRows].sort((a,b)=>(b.ts||'').localeCompare(a.ts||''));
-  $('tr-count').textContent=merged.length?merged.length+' records':'none yet';
-  $('trades-body').innerHTML=merged.length?merged.slice(0,25).map(t=>`
-    <tr class="rowh"><td class="mono" style="color:var(--t2)">${esc(t.ts)}</td><td>${esc(t.event)}</td>
-    <td><span class="pill ${esc(t.src)}">${esc(t.src)}</span></td>
-    <td class="${(t.side||'').toLowerCase()==='call'?'pos':'neg'}">${(t.side||'').toUpperCase()==='CALL'?'▲ CALL':'▼ PUT'}</td>
-    <td class="mono">${esc(t.strike)}</td>
-    <td class="mono ${t.pnl>=0?'pos':'neg'}" style="text-align:right">${t.pnl>=0?'+':''}₹${inr(t.pnl)}</td></tr>`).join('')
-    :'<tr><td colspan="6" class="empty"><b>No trades yet.</b><br>The engine only hunts catalyst days — first live paper hunt: Sep 29 expiry.<br>Activation history: sidebar → Activation log.</td></tr>';
+  $('ks-body').innerHTML=merged.length?merged.slice(0,20).map(t=>`
+    <tr><td style="color:var(--t2)">${esc(t.ts)}</td><td>${esc(t.event)}</td>
+    <td><span class="badge ${esc(t.src)}">${esc(t.src)}</span></td>
+    <td class="${(t.side||'').toLowerCase()==='call'?'cArrow':'pArrow'}">${(t.side||'').toUpperCase()==='CALL'?'▲ CALL':'▼ PUT'}</td>
+    <td>${esc(t.strike)}</td>
+    <td class="${t.pnl>=0?'pos':'neg'}" style="text-align:right">${t.pnl>=0?'+':''}₹${inr(t.pnl)}</td></tr>`).join('')
+    :'<tr><td colspan="6" style="text-align:center;color:var(--t3);padding:26px"><b style="color:var(--t2)">No kills yet.</b><br>The wolf only strikes on hunt days — first window: Sep 29 expiry.</td></tr>';
+
+  renderCards();
+
+  /* system rows */
+  const rows=[['Autopilot',h.autopilot?'g':(h.autopilot===false&&h.sentinel?'r':''),'wakes the wolf · 08:30 brief'],
+              ['News radar',h.sentinel?'g':'r','reads headlines · red-flag veto'],
+              ['Wolf engine',(h.engine||d.running)?'g':(h.autopilot?'a':'r'),'entries · exits · the actual hunt']];
+  $('sys-rows').innerHTML=rows.map(([n,s,ds])=>`<div class="srow"><span class="sq ${s}"></span><div><div class="n">${n}</div><div class="d">${ds}</div></div><div class="v" style="color:${s==='g'?'var(--teal)':s==='a'?'var(--amber)':'var(--dn)'}">${s==='g'?'ONLINE':s==='a'?'STANDBY':'OFFLINE'}</div></div>`).join('');
+
+  /* funds */
+  const dh=d.dhan||{};
+  if(dh.connected){
+    $('funds-line').innerHTML=`Dhan connected — available <span class="pos">₹${inr(dh.available)}</span>${Number(dh.available)<1000?' · <span class="neg">⚠ low balance</span>':''}`;
+  }else{
+    $('funds-line').innerHTML=`Dhan — <span style="color:var(--t3)">${esc(dh.reason||'not connected')}</span>`;
+  }
 
   const al=d.alerts||[];
-  $('alertbar').className='alert'+(al.length?' show':'');
-  if(al.length)$('alertbar').innerHTML='<b>&#9888;</b> '+esc(al[al.length-1]);
+  $('alertbar').className='mayday'+(al.length?' show':'');
+  if(al.length)$('alertbar').innerHTML='<b>MAYDAY —</b> '+esc(al[al.length-1]);
 }
 refresh();setInterval(refresh,3000);
 </script>
