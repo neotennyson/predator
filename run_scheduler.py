@@ -45,14 +45,26 @@ class Autopilot:
         self.proc: subprocess.Popen | None = None
         self.state = _load_state()
 
-    def _today_catalyst(self, day: date):
+    def _hunt_for(self, day: date) -> tuple[object, str] | None:
+        """(catalyst, market) for a day. NIFTY events take precedence over SENSEX Thursdays."""
         try:
             import engine.calendar as cal_us
+
             us = cal_us.catalysts_between(day - timedelta(days=7), day + timedelta(days=1))
         except Exception:
             us = []
         events = calendar_in.indian_events(day, day, include_monthly_expiry=True, us_catalysts=us)
-        return events[0] if events else None
+        if events:
+            return events[0], "in"
+        if day.weekday() == 3:
+            from engine.calendar import Catalyst
+
+            return Catalyst(day, "SENSEX-EXPIRY", "09:15"), "in_sensex"
+        return None
+
+    def _today_catalyst(self, day: date):
+        hunt = self._hunt_for(day)
+        return hunt[0] if hunt else None
 
     def _engine_running(self) -> bool:
         """True if a PREDATOR engine (and only one) is already alive, child or not."""
@@ -89,10 +101,10 @@ class Autopilot:
             pass
         return killed
 
-    def _start_engine(self, live: bool, risk_pct: float) -> bool:
+    def _start_engine(self, live: bool, risk_pct: float, market: str = "in") -> bool:
         if self.proc and self.proc.poll() is None:
             return False
-        cmd = [sys.executable, "-u", str(ROOT / "run_predator.py"), "--market", "in", "--risk-pct", str(risk_pct)]
+        cmd = [sys.executable, "-u", str(ROOT / "run_predator.py"), "--market", market, "--risk-pct", str(risk_pct)]
         if live:
             cmd.append("--live")
         self.proc = subprocess.Popen(cmd, cwd=str(ROOT), stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
@@ -117,7 +129,9 @@ class Autopilot:
         now = _now()
         today = now.date()
         t = (now.hour, now.minute)
-        cat = self._today_catalyst(today)
+        hunt = self._hunt_for(today)
+        market = hunt[1] if hunt else "in"
+        cat = hunt[0] if hunt else None
         secrets = load()
         st = self.state
 
@@ -240,7 +254,7 @@ class Autopilot:
                     send(f"🐺 Engine already active for {label} — adopted. No double-arm.")
                     return "engine already running — adopted"
                 risk = float(secrets.get("risk_pct", 0.05))
-                if self._start_engine(live, risk):
+                if self._start_engine(live, risk, market):
                     self._watch_engine()
                     st["started"] = today.isoformat()
                     _save_state(st)

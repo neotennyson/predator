@@ -28,6 +28,7 @@ DEFAULTS = {
 MARKET_PROFILES = {
     "US": {"symbol": "SPY", "vix_symbol": "^VIX", "strike_step": 1, "session_start": "09:30", "session_end": "16:00", "force_close": "15:55", "morning_cutoff": "11:30"},
     "IN": {"symbol": "^NSEI", "vix_symbol": "^INDIAVIX", "strike_step": 50, "session_start": "09:15", "session_end": "15:30", "force_close": "15:20", "morning_cutoff": "11:00"},
+    "IN_SENSEX": {"symbol": "^BSESN", "vix_symbol": "^INDIAVIX", "strike_step": 100, "session_start": "09:15", "session_end": "15:30", "force_close": "15:20", "morning_cutoff": "11:00"},
 }
 
 

@@ -230,7 +230,8 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
       <div class="pane-b ctl-grid">
         <div>
           <div class="ctl-l">Hunting ground</div>
-          <div class="seg"><button id="m-in" class="on">INDIA · NIFTY</button><button id="m-us" disabled title="RBI LRS law blocks US options for Indian residents">US · SPY (locked)</button></div>
+          <div class="seg"><button id="m-in" class="on">NIFTY</button><button id="m-sx">SENSEX</button><button id="m-us" disabled title="RBI LRS law blocks US options for Indian residents">US · SPY (locked)</button></div>
+          <div class="note">Autopilot picks the ground automatically: NIFTY on its event days, SENSEX on Thursdays (weekly expiry). Manual override here.</div>
           <div class="ctl-l" style="margin-top:14px">Max loss per trade — <span id="riskshow" style="color:var(--mode)">5%</span></div>
           <div class="riskline">
             <input type="number" class="risknum" id="risknum" min="1" max="25" value="5">
@@ -301,7 +302,9 @@ function setMode(m){
 }
 $('mm-practice').onclick=()=>setMode('practice');
 $('mm-live').onclick=()=>{if(mode!=='live'&&!confirm('SWITCH TO REAL MONEY?\nReal orders will hit your Dhan account.'))return;setMode('live');};
-$('m-in').onclick=()=>{$('m-in').classList.add('on');$('m-us').classList.remove('on');};
+let selMarket='in';
+$('m-in').onclick=()=>{selMarket='in';$('m-in').classList.add('on');$('m-sx').classList.remove('on');};
+$('m-sx').onclick=()=>{selMarket='in_sensex';$('m-sx').classList.add('on');$('m-in').classList.remove('on');};
 
 /* risk */
 const risk=$('risk'),risknum=$('risknum');
@@ -335,7 +338,7 @@ loadSecrets();setInterval(loadSecrets,20000);
 
 $('start').onclick=async()=>{
   if(mode==='live'&&!confirm('REAL MONEY HUNT — orders will hit your Dhan account. Start?'))return;
-  await api('/api/start',{market:'in',live:mode==='live',risk_pct:Number(risknum.value)/100});
+  await api('/api/start',{market:selMarket,live:mode==='live',risk_pct:Number(risknum.value)/100});
   setTimeout(refresh,900);
 };
 $('stop').onclick=async()=>{await api('/api/stop');setTimeout(refresh,900);};

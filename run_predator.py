@@ -6,7 +6,7 @@ from engine.paper import run_paper
 
 def cli():
     parser = argparse.ArgumentParser(description="catalyst-engine paper/live trader")
-    parser.add_argument("--market", choices=["us", "in"], default="in")
+    parser.add_argument("--market", choices=["us", "in", "in_sensex"], default="in")
     parser.add_argument("--date", default=None, help="override day (YYYY-MM-DD)")
     parser.add_argument("--poll", type=int, default=60)
     parser.add_argument("--symbol", default=None)

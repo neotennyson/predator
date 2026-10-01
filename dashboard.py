@@ -182,12 +182,55 @@ EVENTS_INFO = {
         "what": "The US Fed decided rates overnight (IST). NIFTY opens this morning reacting to it.",
         "why": "Fed surprises produce the sharpest NIFTY gaps — strong material for the morning breakout engine.",
     },
+    "US-NFP-GAP": {
+        "title": "US Jobs Report (NFP) → NIFTY morning gap",
+        "what": "America's monthly jobs number dropped at 8:30 PM IST yesterday. Strong jobs = rate-hike fears = US down; weak = US rallies.",
+        "why": "First-Friday gap mornings give the engine an extra scheduled catalyst window between CPI and FOMC weeks.",
+    },
+    "SENSEX-EXPIRY": {
+        "title": "SENSEX Weekly Expiry (BSE)",
+        "what": "BSE's SENSEX weekly options expire today (Thursday). Smaller lots (20) and heavy gamma flows on the BSE side.",
+        "why": "Adds a second gamma day every week at half the capital per lot — doubling scheduled hunt days without touching the model.",
+    },
+    "EARN-HDFCBANK-GAP": {
+        "title": "HDFC Bank results → morning gap",
+        "what": "NIFTY's largest weight reported results outside market hours. NIFTY opens this morning repricing the entire banking complex.",
+        "why": "A 13% index weight moving can swing NIFTY 0.5-1%. Only trades if overnight news confirms the reaction (graded B/C otherwise).",
+    },
+    "EARN-RELIANCE-GAP": {
+        "title": "Reliance results → morning gap",
+        "what": "Reliance (second-largest NIFTY weight) reported post-close. Oil-to-telecom conglomerate results move the index broadly.",
+        "why": "Second gap-add from India's most-followed stock. News-confirmed only — no coverage, no trade.",
+    },
+    "EARN-INFOSYS-GAP": {
+        "title": "Infosys results → morning gap",
+        "what": "Infosys guidance landed after close. IT sentiment spills across the tech complex and NIFTY's IT weight.",
+        "why": "IT guidance shocks routinely gap NIFTY. News-confirmed only.",
+    },
+    "EARN-TCS-GAP": {
+        "title": "TCS results → morning gap",
+        "what": "TCS reported post-close; the IT bellwether sets the tone for the sector and IT-heavy NIFTY weights.",
+        "why": "News-confirmed only — the grader needs actual coverage of the results before risking capital.",
+    },
     "LS_RESULTS": {
         "title": "Election Results Day",
         "what": "Vote counting for a major election, with results flowing in through the session.",
         "why": "Political outcomes reprice sectors violently. Among the biggest single-day ranges in Indian market history.",
     },
 }
+
+
+def cal_in_ish(day: date) -> dict:
+    info = EVENTS_INFO["SENSEX-EXPIRY"]
+    return {
+        "date": day.isoformat(),
+        "name": "SENSEX-EXPIRY",
+        "time": info and "09:15" or "09:15",
+        "market": "IN",
+        "title": info["title"],
+        "what": info["what"],
+        "why": info["why"],
+    }
 
 
 def _event_payload(c, market: str) -> dict:
@@ -367,7 +410,16 @@ def status():
         us_for_gaps = cal_us.catalysts_between(today - timedelta(days=7), today + timedelta(days=1))
     except Exception:
         us_for_gaps = []
-    ev_in = [_event_payload(c, "IN") for c in calendar_in.indian_events(today, today + timedelta(days=75), us_catalysts=us_for_gaps)[:9]]
+    in_cats = calendar_in.indian_events(today, today + timedelta(days=75), us_catalysts=us_for_gaps)
+    sensex_rows = []
+    seen_days = {c.day for c in in_cats}
+    probe = today
+    while probe <= today + timedelta(days=75) and len(sensex_rows) < 6:
+        if probe.weekday() == 3 and probe not in seen_days:
+            sensex_rows.append(cal_in_ish(probe))
+        probe += timedelta(days=1)
+    ev_in = [_event_payload(c, "IN") for c in in_cats[:9]] + sensex_rows
+    ev_in.sort(key=lambda e: e["date"])
     ev_us = [_event_payload(c, "US") for c in cal_us.upcoming(today, 4)]
     today_event = next((e for e in ev_in if e["date"] == today.isoformat()), None)
     return {

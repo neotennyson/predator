@@ -27,6 +27,7 @@ JOURNAL = Path(__file__).resolve().parent.parent / "results" / "paper_journal.cs
 MARKET_CLOCK = {
     "US": {"tz": "America/New_York", "start": time(9, 30), "force_close": time(15, 55), "close": time(16, 0), "no_trade_after": time(15, 45)},
     "IN": {"tz": "Asia/Kolkata", "start": time(9, 15), "force_close": time(15, 20), "close": time(15, 30), "no_trade_after": time(14, 45)},
+    "IN_SENSEX": {"tz": "Asia/Kolkata", "start": time(9, 15), "force_close": time(15, 20), "close": time(15, 30), "no_trade_after": time(14, 45)},
 }
 
 LOT_SIZE = {"NIFTY": 75, "BANKNIFTY": 35, "SENSEX": 20}
@@ -38,6 +39,12 @@ def _t(hhmm: str) -> time:
 
 
 def _catalyst_today(day, market: str):
+    if market == "IN_SENSEX":
+        if day.weekday() == 3:
+            from .calendar import Catalyst
+
+            return Catalyst(day, "SENSEX-EXPIRY", "09:15")
+        return None
     if market == "IN":
         events = calendar_in.indian_events(day - timedelta(days=1), day + timedelta(days=1), include_monthly_expiry=True)
         for c in events:
@@ -56,9 +63,11 @@ def _journal_write(row: list) -> None:
         writer.writerow(row)
 
 
-def run_paper(cfg: dict | None = None, poll_seconds: int = 60, date_override: str | None = None, live: bool = False, underlying: str = "NIFTY") -> None:
+def run_paper(cfg: dict | None = None, poll_seconds: int = 60, date_override: str | None = None, live: bool = False, underlying: str | None = None) -> None:
     cfg = cfg or build_config()
     market = str(cfg.get("market", "US")).upper()
+    if underlying is None:
+        underlying = "SENSEX" if market == "IN_SENSEX" else "NIFTY"
     clock = MARKET_CLOCK[market]
     symbol = cfg["symbol"]
     broker = None

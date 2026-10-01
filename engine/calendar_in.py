@@ -18,6 +18,27 @@ ELECTION_RESULT_DAYS = {
     "LS_RESULTS": [date(2024, 6, 4)],
 }
 
+# NIFTY heavyweight earnings released OUTSIDE market hours (post-close / Saturday).
+# Each maps to a next-session gap hunt — identical machinery to US-CPI-GAP.
+# Typical windows — VERIFY against NSE corporate announcements each quarter.
+# Base weight is 0: the day only earns a trade if overnight news actually
+# covers the results (sentiment nets +/-1 -> B grade, half risk) — guessed
+# dates self-skip as C days. This keeps selectivity intact.
+HEAVYWEIGHT_EARNINGS = {
+    "HDFCBANK": [date(2026, 10, 17), date(2027, 1, 16)],
+    "RELIANCE": [date(2026, 10, 23), date(2027, 1, 22)],
+    "INFOSYS": [date(2026, 10, 16), date(2027, 1, 15)],
+    "TCS": [date(2026, 10, 8), date(2027, 1, 7)],
+}
+
+
+def earnings_gap_events() -> list[Catalyst]:
+    return [
+        Catalyst(_next_weekday(d), f"EARN-{name}-GAP", RELEASE_SESSION_OPEN)
+        for name, days in HEAVYWEIGHT_EARNINGS.items()
+        for d in days
+    ]
+
 EXTRA_CSV_IN = None
 
 
@@ -85,6 +106,8 @@ def indian_events(
     if include_us_gaps and us_catalysts:
         for c in us_gap_events(us_catalysts):
             merged.setdefault(c.day, c)
+    for c in earnings_gap_events():
+        merged.setdefault(c.day, c)
     return sorted([c for c in merged.values() if start <= c.day <= end], key=lambda c: c.day)
 
 

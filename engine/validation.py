@@ -15,8 +15,14 @@ EVENT_WEIGHT = {
     "CPI+FOMC": 2,
     "US-CPI-GAP": 1,
     "US-FOMC-GAP": 1,
+    "US-NFP-GAP": 1,
     "FNO-EXPIRY": 1,
+    "SENSEX-EXPIRY": 1,
     "LS_RESULTS": 2,
+    "EARN-HDFCBANK-GAP": 0,
+    "EARN-RELIANCE-GAP": 0,
+    "EARN-INFOSYS-GAP": 0,
+    "EARN-TCS-GAP": 0,
 }
 
 
