@@ -2,13 +2,13 @@ import argparse
 
 from engine.config import build_config
 
-MARKET_ALIASES = {"US": "US", "IN": "IN", "INDIA": "IN", "NSE": "IN"}
+MARKET_ALIASES = {"US": "US", "IN": "IN", "INDIA": "IN", "NSE": "IN", "IN_SENSEX": "IN_SENSEX", "SENSEX": "IN_SENSEX"}
 
 
 def cli():
     parser = argparse.ArgumentParser(description="PREDATOR backtester")
     parser.add_argument("--mode", choices=["intraday", "daily"], default="intraday")
-    parser.add_argument("--market", choices=["us", "in"], default=None)
+    parser.add_argument("--market", choices=["us", "in", "in_sensex"], default=None)
     parser.add_argument("--symbol", default=None)
     parser.add_argument("--risk-pct", type=float, default=None)
     parser.add_argument("--years-back", type=int, default=5)

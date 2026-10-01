@@ -16,8 +16,17 @@ FORCE_CLOSE = time(15, 55)
 
 
 def _events_for(cfg: dict, start: date, end: date) -> list:
-    if str(cfg.get("market", "US")).upper() == "IN":
+    m = str(cfg.get("market", "US")).upper()
+    if m == "IN":
         return calendar_in.indian_events(start, end, us_catalysts=cal.ALL)
+    if m == "IN_SENSEX":
+        out = []
+        d = start
+        while d <= end:
+            if d.weekday() == 3:
+                out.append(cal.Catalyst(d, "SENSEX-EXPIRY", "09:15"))
+            d += timedelta(days=1)
+        return out
     return cal.catalysts_between(start, end)
 
 
