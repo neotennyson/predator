@@ -10,7 +10,7 @@ import sys
 import threading
 import time
 from collections import deque
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 from pathlib import Path
 
 from fastapi import FastAPI, Header, HTTPException
@@ -476,6 +476,86 @@ def _ttl_cache(key: str, ttl: float, fn):
     value = fn()
     _CACHE[key] = (now, value)
     return value
+
+
+@app.get("/api/feed")
+def feed():
+    """Live agent feed: scheduler log + engine log + journal, newest first."""
+    entries: list[dict] = []
+
+    def add(ts: str, kind: str, text: str) -> None:
+        entries.append({"ts": ts, "kind": kind, "text": text})
+
+    today = date.today().isoformat()
+    eng_path = RESULTS / "engine_live.log"
+    try:
+        cur_day = today
+        for line in eng_path.read_text().splitlines()[-150:]:
+            m = re.search(r"day=(\d{4}-\d{2}-\d{2})", line)
+            if m:
+                cur_day = m.group(1)
+            if "paper mode" in line:
+                add(f"{cur_day}T09:00:00", "session", f"Session started · {'REAL MONEY' if 'live=True' in line else 'paper mode'} · {cur_day}")
+            elif "— engine armed" in line:
+                cm = re.search(r"catalyst=\S+\s+(\S+)", line)
+                name = cm.group(1) if cm else "hunt day"
+                add(f"{cur_day}T09:07:00", "arm", f"Armed for {name}")
+            elif "session over" in line:
+                add(f"{cur_day}T15:25:00", "eod", "Session closed — flat by 15:20, no overnight")
+    except Exception:
+        pass
+
+    sched_log = Path.home() / "Library" / "Logs" / "predator" / "predator-scheduler.log"
+    try:
+        for line in sched_log.read_text().splitlines()[-400:]:
+            m = re.match(r"\[(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2})\] (.*)", line)
+            if not m:
+                continue
+            ts, msg = f"{m.group(1)}T{m.group(2)}", m.group(3)
+            if "quiet day — no hunt" in msg:
+                add(ts, "quiet", "Quiet day — no hunt scheduled, wolf resting")
+            elif "reminder sent" in msg or "MORNING CHECK" in msg:
+                add(ts, "brief", "Morning brief: day graded & dispatched")
+            elif "rated C" in msg or "stand down" in msg:
+                add(ts, "skip", "Day graded C — standing down, no risk taken")
+            elif "engine started" in msg or "AUTO-ARMED" in msg:
+                add(ts, "arm", "Auto-armed at 09:07 — engine hunting")
+            elif "cool-off" in msg:
+                add(ts, "halt", "Cool-off — two losing days, governor forces rest")
+            elif "adopted" in msg:
+                add(ts, "arm", "Engine already active — adopted, no double-arm")
+            elif "terminated" in msg or "safety kill" in msg:
+                add(ts, "kill", "Safety kill — everything flat at 15:25")
+            elif "heartbeat" in msg:
+                add(ts, "beat", "Daily heartbeat — all systems alive")
+    except Exception:
+        pass
+
+    try:
+        with open(RESULTS / "paper_journal.csv", newline="") as fh:
+            for r in csv.DictReader(fh):
+                pnl = float(r.get("pnl") or 0)
+                ts = (r.get("timestamp") or today)[:19]
+                add(ts, "trade", f"Closed {(r.get('side') or '').upper()} {r.get('strike')} — {'+' if pnl >= 0 else ''}₹{inr_f(pnl)} net")
+    except Exception:
+        pass
+
+    entries.sort(key=lambda e: e["ts"], reverse=True)
+    seen: set[str] = set()
+    deduped = []
+    for e in entries:
+        day = e["ts"][:10]
+        if e["kind"] in ("quiet", "brief", "beat", "skip", "kill", "eod", "halt"):
+            key = f"{day}|{e['kind']}"
+        else:
+            key = e["ts"] + e["text"]
+        if key in seen:
+            continue
+        seen.add(key)
+        deduped.append(e)
+    return {"feed": deduped[:80], "now": f"{today}T{datetime.now().strftime('%H:%M:%S')}"}
+def inr_f(n: float) -> str:
+    return f"{abs(int(round(n))):,}"
 
 
 @app.get("/api/health")

@@ -303,7 +303,7 @@ class Autopilot:
         while True:
             try:
                 msg = self.tick()
-                print(f"[{_now().strftime('%H:%M:%S')}] {msg}")
+                print(f"[{_now().strftime('%Y-%m-%d %H:%M:%S')}] {msg}")
             except Exception as exc:
                 print(f"tick error: {exc}")
             time.sleep(poll_seconds)
