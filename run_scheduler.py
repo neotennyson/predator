@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 import sys
 import threading
@@ -17,6 +18,29 @@ ROOT = Path(__file__).resolve().parent
 RESULTS = ROOT / "results"
 STATE_PATH = RESULTS / "scheduler_state.json"
 IST = ZoneInfo("Asia/Kolkata")
+
+PROCESS_START = time.time()
+_LAST_CODE_CHECK = [0.0]
+
+
+def _code_is_stale() -> bool:
+    """True if any project .py file changed on disk after this process started."""
+    now = time.time()
+    if now - _LAST_CODE_CHECK[0] < 600:
+        return False
+    _LAST_CODE_CHECK[0] = now
+    try:
+        for path in [ROOT / "run_scheduler.py", *(ROOT / "engine").glob("*.py"), ROOT / "tokens.py"]:
+            if path.stat().st_mtime > PROCESS_START:
+                return True
+    except Exception:
+        pass
+    return False
+
+
+def _self_replace() -> None:
+    send("🔄 PREDATOR code updated on disk — hot-reloading autopilot so the new logic runs tomorrow.")
+    os.execv(sys.executable, [sys.executable] + sys.argv)
 
 REMIND_AT = (8, 30)
 START_AT = (9, 7)
@@ -126,6 +150,8 @@ class Autopilot:
         threading.Thread(target=run, daemon=True).start()
 
     def tick(self) -> str:
+        if _code_is_stale():
+            _self_replace()
         now = _now()
         today = now.date()
         t = (now.hour, now.minute)
