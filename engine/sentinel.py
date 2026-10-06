@@ -117,6 +117,9 @@ def scan(min_score: int = 5, max_items: int = 5) -> list[dict]:
             alerts.append(entry)
     cutoff = (now - timedelta(days=2)).isoformat()
     seen = {k: v for k, v in seen.items() if v > cutoff}
+    if len(seen) > 5000:
+        newest = sorted(seen.items(), key=lambda kv: kv[1], reverse=True)[:5000]
+        seen = dict(newest)
     SEEN_PATH.parent.mkdir(parents=True, exist_ok=True)
     SEEN_PATH.write_text(json.dumps(seen))
     alerts.sort(key=lambda a: -a["score"])

@@ -79,7 +79,12 @@ def _reader(proc: subprocess.Popen) -> None:
             state["log"].append(text)
             _parse_stream(text)
         try:
-            with open(RESULTS / "engine_live.log", "a") as fh:
+            log_path = RESULTS / "engine_live.log"
+            if log_path.exists() and log_path.stat().st_size > 1_000_000:
+                rotated = RESULTS / "engine_live.log.1"
+                rotated.unlink(missing_ok=True)
+                log_path.replace(rotated)
+            with open(log_path, "a") as fh:
                 fh.write(text + "\n")
         except Exception:
             pass
@@ -225,7 +230,7 @@ def cal_in_ish(day: date) -> dict:
     return {
         "date": day.isoformat(),
         "name": "SENSEX-EXPIRY",
-        "time": info and "09:15" or "09:15",
+        "time": "09:15",
         "market": "IN",
         "title": info["title"],
         "what": info["what"],

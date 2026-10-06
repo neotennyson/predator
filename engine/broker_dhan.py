@@ -62,7 +62,9 @@ class DhanBroker:
         while True:
             resp = self.session.request(method, url, headers=self._headers(), json=json_body, params=params, timeout=self.timeout)
             body_lower = resp.text.lower() if resp.text else ""
-            needs_refresh = resp.status_code in (401, 403) or ("token" in body_lower and "expire" in body_lower)
+            needs_refresh = resp.status_code in (401, 403) or (
+                "token" in body_lower and ("expire" in body_lower or "invalid" in body_lower)
+            )
             if needs_refresh and not retried:
                 retried = True
                 import tokens as token_store
