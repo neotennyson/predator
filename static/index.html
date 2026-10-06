@@ -39,12 +39,15 @@ body[data-idle] .avatar::after{animation:none;opacity:0}
 .hd .clk{font:500 11.5px var(--mono);color:var(--t3);font-variant-numeric:tabular-nums;border-left:1px solid var(--line);padding-left:16px}
 
 /* ============ TICKER STRIP ============ */
-.strip{display:flex;align-items:center;gap:0;border-bottom:1px solid var(--line);background:var(--card);overflow:hidden;white-space:nowrap}
-.strip .cell{display:flex;align-items:center;gap:10px;padding:10px 22px;border-right:1px solid var(--line);font:500 12px var(--mono);color:var(--t2)}
+.strip{display:flex;align-items:center;gap:0;border-bottom:1px solid var(--line);background:var(--card);overflow-x:auto;white-space:nowrap;scrollbar-width:none}
+.strip::-webkit-scrollbar{display:none}
+.strip .cell{display:flex;align-items:center;gap:10px;padding:10px 22px;border-right:1px solid var(--line);font:500 12px var(--mono);color:var(--t2);flex:none}
 .strip .cell b{color:var(--t1);font-weight:600}
 .strip .cd{font:700 13px var(--mono);color:var(--grn);font-variant-numeric:tabular-nums}
 .strip .livechip{color:var(--grn);display:inline-flex;align-items:center;gap:7px}
 .strip .livechip .bd{width:7px;height:7px;border-radius:50%;background:var(--grn);animation:blink 1.2s infinite}
+.alertbar{display:none;padding:9px 24px;border-bottom:1px solid rgba(255,77,94,.4);background:rgba(255,77,94,.07);color:#ffb3ad;font:500 12.5px var(--mono)}
+.alertbar.show{display:block}
 
 /* ============ LAYOUT ============ */
 .wrap{max-width:1240px;margin:0 auto;padding:20px 24px 60px;display:grid;grid-template-columns:1fr 330px;gap:16px}
@@ -87,6 +90,27 @@ body[data-idle] .avatar::after{animation:none;opacity:0}
 .st{background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:11px 12px}
 .st .v{font:700 19px var(--mono);font-variant-numeric:tabular-nums}
 .st .k{font:500 9.5px var(--mono);letter-spacing:.1em;color:var(--t3);margin-top:3px;text-transform:uppercase}
+
+/* calendar rows */
+.crow{display:flex;gap:12px;align-items:center;padding:10px 18px;border-bottom:1px solid #17171e;cursor:pointer}
+.crow:last-child{border-bottom:0}
+.crow:hover{background:var(--card2)}
+.crow.open{background:var(--card2)}
+.crow .cd2{font:600 12px var(--mono);color:var(--t3);width:56px;flex:none;font-variant-numeric:tabular-nums}
+.crow .nm{font-weight:600;font-size:13px;color:var(--t1);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.crow .in{margin-left:auto;font:700 12px var(--mono);color:var(--grn);flex:none;font-variant-numeric:tabular-nums}
+.cmore{display:none;padding:0 18px 13px;font-size:12.5px;color:var(--t2);line-height:1.6}
+.cmore b{color:var(--t1)}
+.crow.open .cmore{display:block}
+.gradechip{display:inline-block;font:800 12px var(--mono);padding:3px 10px;border-radius:7px;margin-right:8px}
+.gradechip.A{background:rgba(34,255,136,.13);color:var(--grn)}
+.gradechip.B{background:rgba(255,194,72,.13);color:var(--amber)}
+.gradechip.C{background:rgba(255,77,94,.13);color:var(--red)}
+.steps .step{display:flex;gap:12px;padding:8px 0;border-bottom:1px dashed var(--line)}
+.steps .step:last-child{border-bottom:0}
+.steps .st-t{font:700 11px var(--mono);color:var(--grn);width:44px;flex:none;padding-top:2px}
+.steps b{font-size:12.5px;color:var(--t1);display:block}
+.steps small{font-size:11.5px;color:var(--t3);line-height:1.5;display:block;margin-top:2px}
 
 /* ============ TABLE ============ */
 table.tb{width:100%;border-collapse:collapse;font:400 12.5px var(--mono)}
@@ -157,8 +181,10 @@ footer b{color:var(--t2)}
   <div class="cell"><b>T-MINUS</b> <span class="cd" id="s-cd">—</span></div>
   <div class="cell"><b>MODE</b> <span id="s-mode" style="color:var(--vio)">PRACTICE</span></div>
   <div class="cell"><b>FUNDS</b> <span id="s-funds">—</span></div>
+  <div class="cell"><b>TODAY</b> <span id="s-today">—</span></div>
   <div class="cell livechip"><span class="bd"></span> AGENT KEEPS GOING</div>
 </div>
+<div class="alertbar" id="alertbar"></div>
 
 <div class="wrap">
   <div class="col">
@@ -208,13 +234,19 @@ footer b{color:var(--t2)}
 
   <div class="col">
     <div class="card">
-      <div class="ch"><span class="t">Next target</span><span class="r">auto-arms 09:07 IST</span></div>
+      <div class="ch"><span class="t">Next target</span><span class="r" id="nt-grade-r">auto-arms 09:07 IST</span></div>
       <div class="cb">
         <div class="cd-big" id="cd">—</div>
         <div class="cd-lb">COUNTDOWN TO NEXT HUNT WINDOW</div>
         <div class="cd-target" id="cd-target"></div>
         <div class="progress"><i id="cd-bar" style="width:0%"></i></div>
+        <div id="grade-box" style="margin-top:14px;padding-top:12px;border-top:1px dashed var(--line);font:500 11.5px var(--mono);color:var(--t3)">TODAY'S GRADE — checking…</div>
       </div>
+    </div>
+
+    <div class="card">
+      <div class="ch"><span class="t">Hunt calendar</span><span class="r" id="cal-note">tap a row for the story</span></div>
+      <div id="cal-rows" style="max-height:340px;overflow-y:auto"></div>
     </div>
 
     <div class="card">
@@ -228,7 +260,23 @@ footer b{color:var(--t2)}
         <div class="stgrid" id="stgrid"></div>
         <svg style="width:100%;height:64px;display:block;margin-top:12px" id="spk" viewBox="0 0 420 64" preserveAspectRatio="none"></svg>
         <div style="font:500 10px var(--mono);color:var(--t3);letter-spacing:.1em;margin-top:6px;text-align:center" id="spk-note">EQUITY TRACE — VIRTUAL FILLS, REAL DATA</div>
+        <div style="margin-top:10px;padding-top:10px;border-top:1px dashed var(--line);font:500 11px var(--mono);color:var(--t3);text-align:center" id="bt-note">backtest: no run on record</div>
       </div>
+    </div>
+
+    <div class="card">
+      <div class="ch"><span class="t">How it hunts</span><span class="r">plain words</span></div>
+      <details style="padding:12px 18px 16px" open>
+        <summary style="cursor:pointer;font:600 11px var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--t3);list-style:none;margin-bottom:10px">THE SIX STEPS OF A HUNT DAY</summary>
+        <div class="steps">
+          <div class="step"><span class="st-t">08:30</span><div><b>Morning brief</b><small>Calendar + overnight news + India VIX → day graded A / B / C. C = the wolf stays in the trees.</small></div></div>
+          <div class="step"><span class="st-t">09:07</span><div><b>Auto-arm</b><small>If the day passed, the engine arms itself. Practice needs nothing; live needs a fresh token + your confirm.</small></div></div>
+          <div class="step"><span class="st-t">09:15</span><div><b>Impulse range</b><small>First 15 minutes measured. Under 0.15% range = chop — no trade, it walks away.</small></div></div>
+          <div class="step"><span class="st-t">BREAK</span><div><b>The strike</b><small>Range breaks AND news agrees → buy the ATM option. Calls above, puts below. News disagrees → vetoed.</small></div></div>
+          <div class="step"><span class="st-t">RUN</span><div><b>Stop · TP1 · Runner</b><small>Stop −55%. Book 40% at 2×. The rest rides to 25× or trails — the runner is where big money lives.</small></div></div>
+          <div class="step"><span class="st-t">15:20</span><div><b>Flatten. Always.</b><small>Everything closes. No overnight holds, ever. The result lands in the feed that evening.</small></div></div>
+        </div>
+      </details>
     </div>
   </div>
 </div>
@@ -291,10 +339,8 @@ loadSecrets();setInterval(loadSecrets,20000);
 
 /* relative time */
 function rel(ts){
-  const t=new Date(ts.replace(' ','T')+(ts.length===10?'T09:00:00':''));
-  const now=istNow();
-  const diff=(t.getTime()-(now.getTime()+(330+now.getTimezoneOffset())*60000)*0)/1;
-  const secs=Math.abs((Date.now()+ (330+new Date().getTimezoneOffset())*60000)-t.getTime())/1000;
+  const t=new Date((ts.length===10?ts+'T09:00:00':ts.replace(' ','T'))+(ts.length===10?'+05:30':ts.endsWith('Z')?'':'+05:30'));
+  const secs=Math.abs(Date.now()-t.getTime())/1000;
   if(secs<60)return 'now';
   if(secs<3600)return Math.floor(secs/60)+'m ago';
   if(secs<86400)return Math.floor(secs/3600)+'h ago';
@@ -358,7 +404,26 @@ async function refresh(){
   }catch(e){return;}
   lastData=d;
 
-  const PH={standby:['STANDBY','var(--t3)'],starting:['LAUNCHING','var(--amber)'],watching:['ARMED · WATCHING','var(--grn)'],in_position:['IN POSITION','var(--grn)'],managing:['RIDING RUNNER','var(--grn)'],done:['SESSION DONE','var(--t3)']};
+  /* calendar rows */
+let openRow=null;
+function toggleRow(d){openRow=openRow===d?null:d;if(lastData)renderCalRows();}
+function renderCalRows(){
+  const d=lastData;if(!d)return;
+  const all=[...(d.events_in||[]),...(d.events_us||[])].sort((a,b)=>a.date.localeCompare(b.date));
+  $('cal-note').textContent=all.length+' scheduled · tap for the story';
+  $('cal-rows').innerHTML=all.slice(0,10).map(e=>{
+    const days=Math.round((new Date(e.date)-new Date(d.today))/86400000);
+    const open=openRow===e.date;
+    return `<div class="crow ${open?'open':''}" onclick="toggleRow('${e.date}')">
+      <span class="cd2">${e.date.slice(5)} ${new Date(e.date+'T00:00:00').toLocaleString('en',{weekday:'short'}).toUpperCase()}</span>
+      <span class="nm" title="${esc(e.title)}">${esc(e.title)}</span>
+      <span class="in">${days===0?'TODAY':days+'D'}</span>
+    </div>
+    ${open?`<div class="cmore"><b>What:</b> ${esc(e.what)}<br><br><b>Why it matters:</b> ${esc(e.why)}</div>`:''}`;
+  }).join('');
+}
+
+const PH={standby:['STANDBY','var(--t3)'],starting:['LAUNCHING','var(--amber)'],watching:['ARMED · WATCHING','var(--grn)'],in_position:['IN POSITION','var(--grn)'],managing:['RIDING RUNNER','var(--grn)'],done:['SESSION DONE','var(--t3)']};
   const[label,color]=PH[d.phase]||PH.standby;
   $('s-status').textContent=label;$('s-status').style.color=color;
   $('h-pnl').textContent=(d.paper&&d.paper.total)?((d.paper.total_pnl>=0?'+':'−')+'₹'+inr(Math.abs(d.paper.total_pnl))):'₹0';
@@ -372,6 +437,21 @@ async function refresh(){
     $('cd-target').innerHTML=`<div class="tt">${esc(nxt.title)}</div><div class="ss">${esc(nxt.what)}</div>`;
     $('cd-bar').style.width=Math.round(Math.max(0,Math.min(1,1-days/21))*100)+'%';
   }
+  $('s-today').textContent=(d.running&&d.session_pnl)?((d.session_pnl>=0?'+':'−')+'₹'+inr(Math.abs(d.session_pnl))):(d.running?'live':'—');
+
+  fetch('/results/day_rating.json').then(r=>r.ok?r.json():null).then(rt=>{
+    const box=$('grade-box'),rEl=$('nt-grade-r');
+    if(rt&&rt.date===d.today){
+      box.innerHTML=`TODAY'S GRADE — <span class="gradechip ${rt.grade}">${rt.grade}</span>risk ×${rt.multiplier}<span style="color:var(--t3)"> · ${esc((rt.reasons||[]).slice(0,2).join(' · '))}</span>`;
+      box.title=(rt.reasons||[]).join(' · ');
+      rEl.textContent=`graded ${rt.grade} · risk ×${rt.multiplier}`;
+    }else{
+      box.textContent=d.today_event?"TODAY'S GRADE — not yet rated (brief runs 08:30)":"TODAY'S GRADE — quiet day, no rating needed";
+      rEl.textContent='auto-arms 09:07 IST';
+    }
+  }).catch(()=>{
+    $('grade-box').textContent="TODAY'S GRADE — unavailable";
+  });
 
   const pp=d.paper||{};
   const bt=d.backtest||{};
@@ -388,6 +468,10 @@ async function refresh(){
   ];
   $('stgrid').innerHTML=st.map(([v,k])=>`<div class="st"><div class="v">${v}</div><div class="k">${k}</div></div>`).join('');
   spark(pp.curve);
+  const bts=(bt.summary&&bt.summary.trades)?bt.summary:null;
+  $('bt-note').textContent=bts?`backtest: ${bts.trades} trades · ${(bts.win_rate*100).toFixed(0)}% win · ${bts.avg_r} avg R · ${bts.return_multiple}x return`:'backtest: no run on record';
+
+  renderCalRows();
 
   const dh=d.dhan||{};
   $('s-funds').textContent=dh.connected?('₹'+inr(dh.available)):'—';
@@ -409,6 +493,9 @@ async function refresh(){
     <td class="${t.pnl>=0?'up':'dn'}" style="text-align:right">${t.pnl>=0?'+':''}₹${inr(t.pnl)}</td></tr>`).join('')
     :'<tr><td colspan="6" class="empty"><b>No trades yet.</b><br>First windows: Sep 29 expiry · Oct 7 RBI-MPC. The feed above shows the agent working daily.</td></tr>';
 
+  const al=d.alerts||[];
+  $('alertbar').className='alertbar'+(al.length?' show':'');
+  if(al.length)$('alertbar').innerHTML='<b>⚠ ALERT —</b> '+esc(al[al.length-1]);
   renderFeed(fd.feed||[]);
 }
 refresh();setInterval(refresh,3000);
