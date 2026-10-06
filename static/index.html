@@ -194,10 +194,18 @@ footer b{color:var(--t2)}
     </div>
 
     <div class="card">
-      <div class="ch"><span class="t">Trade history</span><span class="r" id="tr-note"></span></div>
+      <div class="ch"><span class="t">Paper record — forward testing</span><span class="r" id="tr-note"></span></div>
       <table class="tb">
         <thead><tr><th>Date</th><th>Hunt</th><th>Type</th><th>Side</th><th>Strike</th><th style="text-align:right">Net P&amp;L</th></tr></thead>
         <tbody id="tb-body"></tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <div class="ch"><span class="t">Backtest archive — simulations only</span><span class="r" id="bt-note2">not real trades</span></div>
+      <table class="tb">
+        <thead><tr><th>Date</th><th>Hunt</th><th>Side</th><th>Strike</th><th style="text-align:right">Sim P&amp;L</th></tr></thead>
+        <tbody id="bt-body"></tbody>
       </table>
     </div>
 
@@ -481,17 +489,22 @@ const PH={standby:['STANDBY','var(--t3)'],starting:['LAUNCHING','var(--amber)'],
               ['Wolf engine',(h.engine||d.running)?'g':(h.autopilot?'a':'r'),'entries · exits',(h.engine||d.running)?'HUNTING':'STANDBY']];
   $('sys-rows').innerHTML=rows.map(([n,s,ds,v])=>`<div class="sys"><span class="d ${s}"></span><div><div class="n">${n}</div><div class="ds">${ds}</div></div><div class="v" style="color:${s==='g'?'var(--grn)':s==='a'?'var(--amber)':'var(--red)'}">${v}</div></div>`).join('');
 
-  const btRows=(bt.trades||[]).map(t=>({ts:t.date,event:t.event,src:'backtest',side:t.side,strike:t.strike,pnl:Number(t.pnl||0)}));
   const ppRows=(pp.journal_full||[]).map(t=>({ts:(t.timestamp||'').slice(0,10),event:t.event,src:(t.mode||'').toUpperCase(),side:t.side,strike:t.strike,pnl:Number(t.pnl||0)}));
-  const merged=[...ppRows,...btRows].sort((a,b)=>(b.ts||'').localeCompare(a.ts||'')).slice(0,12);
-  $('tr-note').textContent=merged.length?merged.length+' RECORDS':'';
-  $('tb-body').innerHTML=merged.length?merged.map(t=>`
+  $('tr-note').textContent=ppRows.length?`${ppRows.length} PAPER TRADES`:'0 paper trades yet';
+  $('tb-body').innerHTML=ppRows.length?ppRows.map(t=>`
     <tr><td style="color:var(--t3)">${esc(t.ts)}</td><td style="color:var(--t1)">${esc(t.event)}</td>
     <td><span class="chip ${esc(t.src)}">${esc(t.src)}</span></td>
     <td class="${(t.side||'').toLowerCase()==='call'?'cArrow':'pArrow'}">${(t.side||'').toUpperCase()==='CALL'?'▲ CALL':'▼ PUT'}</td>
     <td>${esc(t.strike)}</td>
     <td class="${t.pnl>=0?'up':'dn'}" style="text-align:right">${t.pnl>=0?'+':''}₹${inr(t.pnl)}</td></tr>`).join('')
-    :'<tr><td colspan="6" class="empty"><b>No trades yet.</b><br>First windows: Sep 29 expiry · Oct 7 RBI-MPC. The feed above shows the agent working daily.</td></tr>';
+    :'<tr><td colspan="6" class="empty"><b>Zero paper trades so far.</b><br>These are forward tests with virtual fills — the ONLY record that unlocks real money.<br>Backtest simulations live in the card below and are not trades.</td></tr>';
+  const btRows=(bt.trades||[]).map(t=>({ts:t.date,event:t.event,side:t.side,strike:t.strike,pnl:Number(t.pnl||0)}));
+  $('bt-body').innerHTML=btRows.length?btRows.map(t=>`
+    <tr><td style="color:var(--t3)">${esc(t.ts)}</td><td style="color:var(--t1)">${esc(t.event)}</td>
+    <td class="${(t.side||'').toLowerCase()==='call'?'cArrow':'pArrow'}">${(t.side||'').toUpperCase()==='CALL'?'▲ CALL':'▼ PUT'}</td>
+    <td>${esc(t.strike)}</td>
+    <td class="${t.pnl>=0?'up':'dn'}" style="text-align:right">${t.pnl>=0?'+':''}₹${inr(t.pnl)}</td></tr>`).join('')
+    :'<tr><td colspan="5" class="empty">no backtest run on record</td></tr>';
 
   const al=d.alerts||[];
   $('alertbar').className='alertbar'+(al.length?' show':'');

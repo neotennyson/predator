@@ -30,14 +30,15 @@ def _events_for(cfg: dict, start: date, end: date) -> list:
     return cal.catalysts_between(start, end)
 
 
-def _exit_reason_prem(bars: pd.DataFrame, sig, strat: CatalystMomentum, sigma: float) -> tuple[float, str]:
+def _exit_reason_prem(bars: pd.DataFrame, sig, strat: CatalystMomentum, sigma: float, release_ts=None, vix_sigma: float | None = None) -> tuple[float, str]:
     remaining = 1.0
     realized = 0.0
     tp1_done = False
     reason = "eod"
     path = bars[bars.index >= sig.entry_time]
     for ts, row in path.iterrows():
-        prem = strat.premium_at(float(row["Close"]), sig.strike, ts, sigma, sig.side)
+        mtm_sigma = strat.sigma_at(ts, release_ts, vix_sigma) if release_ts is not None else sigma
+        prem = strat.premium_at(float(row["Close"]), sig.strike, ts, mtm_sigma, sig.side)
         is_last = ts == bars.index[-1] or ts.time() >= FORCE_CLOSE
         if prem <= sig.stop_premium:
             realized += remaining * (sig.stop_premium / sig.premium)
@@ -88,7 +89,8 @@ def run_intraday(cfg: dict) -> None:
             continue
         stake = rm.stake()
         sigma = (vix / 100.0) if vix else cfg["sigma_floor"]
-        exit_mult, reason = _exit_reason_prem(bars, sig, strat, sigma)
+        release_ts = strat.release_ts_for(cat, tz)
+        exit_mult, reason = _exit_reason_prem(bars, sig, strat, sigma, release_ts=release_ts, vix_sigma=(vix / 100.0) if vix else None)
         pnl = round(stake * (exit_mult - 1.0), 2)
         rm.register_trade_result(pnl)
         rm.register_day_result(pnl)
@@ -171,6 +173,8 @@ def run_daily_gap(cfg: dict, years_back: int = 5) -> None:
         side = "call" if gap > 0 else "put"
         strike = round(open_px)
         sigma = max(float(vol10.iloc[loc]) if not pd.isna(vol10.iloc[loc]) else cfg["sigma_floor"], cfg["sigma_floor"])
+        # gap days: the event resolved overnight — event IV premium already crushed by Indian open
+        sigma *= (1.0 - cfg.get("event_iv_crush", 0.35))
         entry_ts = daily.index[loc].replace(hour=9, minute=30)
         close_ts = entry_ts.replace(hour=15, minute=55)
         prem_in = strat.premium_at(open_px, strike, entry_ts, sigma, side == "call")

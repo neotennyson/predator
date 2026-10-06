@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 from datetime import time
 
+import math
+
 import pandas as pd
 
 from .calendar import Catalyst
@@ -30,6 +32,8 @@ class CatalystMomentum:
         self.tp1_frac = cfg.get("tp1_frac", 0.40)
         self.runner_mult = cfg.get("runner_mult", 25.0)
         self.sigma_floor = cfg.get("sigma_floor", 0.08)
+        self.event_crush = cfg.get("event_iv_crush", 0.35)
+        self.iv_tau_min = cfg.get("iv_tau_min", 60)
         self.strike_step = float(cfg.get("strike_step", 1))
         self.confirm_bars = int(cfg.get("confirm_bars", 2))
 
@@ -45,6 +49,26 @@ class CatalystMomentum:
     def _minutes_to_close(self, ts: pd.Timestamp) -> float:
         close_dt = ts.normalize() + pd.Timedelta(hours=self.session_end.hour, minutes=self.session_end.minute)
         return max((close_dt - ts).total_seconds() / 60.0, 10.0)
+
+    def release_ts_for(self, catalyst: Catalyst, tz) -> pd.Timestamp:
+        release_h, release_m = (int(x) for x in catalyst.release_hhmm.split(":"))
+        return pd.Timestamp(year=catalyst.day.year, month=catalyst.day.month, day=catalyst.day.day,
+                            hour=release_h, minute=release_m, tz=tz)
+
+    def sigma_at(self, ts: pd.Timestamp, release_ts: pd.Timestamp | None, vix_sigma: float | None) -> float:
+        """Event-aware implied vol: the event premium decays after the release.
+
+        sigma(t) = base * (1 - crush + crush * exp(-(t - release)/tau)) for t >= release,
+        full base before release. This models the IV crush that hits event-day
+        option buyers the moment the event resolves.
+        """
+        floor = self.sigma_floor
+        base = max(vix_sigma or 0.0, floor)
+        if release_ts is None or ts < release_ts or self.event_crush <= 0:
+            return max(base, floor)
+        dt_min = max((ts - release_ts).total_seconds() / 60.0, 0.0)
+        relaxed = base * (1.0 - self.event_crush + self.event_crush * math.exp(-dt_min / max(self.iv_tau_min, 1.0)))
+        return max(relaxed, floor)
 
     def premium_at(self, spot: float, strike: float, ts: pd.Timestamp, sigma: float, side: str) -> float:
         t_years = max(self._minutes_to_close(ts) / (390.0 * 252.0), 10.0 / (390.0 * 252.0))
@@ -72,7 +96,7 @@ class CatalystMomentum:
         close_guard = release_ts.replace(hour=self.force_close.hour, minute=self.force_close.minute) - pd.Timedelta(minutes=10)
         cutoff = min(release_ts + pd.Timedelta(hours=3), close_guard)
         scan = bars[(bars.index >= impulse_end) & (bars.index <= cutoff)]
-        sigma = (vix / 100.0) if vix else self.sigma_floor
+        vix_sigma = (vix / 100.0) if vix else None
         pending = None
         for ts, row in scan.iterrows():
             close = float(row["Close"])
@@ -87,6 +111,7 @@ class CatalystMomentum:
             if pending is not None and pending["side"] == side and (ts - pending["ts"]).total_seconds() <= 900:
                 entry_time = ts
                 strike = round(close / self.strike_step) * self.strike_step
+                sigma = self.sigma_at(entry_time, release_ts, vix_sigma)
                 premium = self.premium_at(close, strike, entry_time, sigma, side)
                 return Signal(
                     catalyst=catalyst,

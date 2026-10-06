@@ -86,6 +86,14 @@ def run_paper(cfg: dict | None = None, poll_seconds: int = 60, date_override: st
         print("not a catalyst day.")
         return
     strat = CatalystMomentum(cfg)
+    release_ts = strat.release_ts_for(cat, clock["tz"])
+    vix_sigma = None
+    try:
+        from . import data as _data
+        vix = _data.get_prev_vix(day, cfg.get("vix_symbol", "^INDIAVIX"))
+        vix_sigma = (vix / 100.0) if vix else None
+    except Exception:
+        vix_sigma = None
     position: dict | None = None
     realized_pnl = 0.0
     remaining_frac = 1.0
@@ -189,7 +197,8 @@ def run_paper(cfg: dict | None = None, poll_seconds: int = 60, date_override: st
                 if broker is not None and position.get("security_id"):
                     prem = broker.ltp(position["security_id"], position.get("order_segment", "NSE_FNO"))
                 else:
-                    prem = strat.premium_at(last_close, position["strike"], last_ts, cfg["sigma_floor"], position["side"] == "call")
+                    mtm_sigma = strat.sigma_at(last_ts, release_ts, vix_sigma)
+                    prem = strat.premium_at(last_close, position["strike"], last_ts, mtm_sigma, position["side"] == "call")
                 position["peak"] = max(position.get("peak", prem), prem)
                 try:
                     from .sentinel import veto_active as _red
