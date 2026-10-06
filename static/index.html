@@ -3,379 +3,303 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>PREDATOR — The Hunt</title>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<title>PREDATOR</title>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#070a08; --bg2:#0b100c; --card:rgba(12,18,14,.72); --card2:rgba(16,24,18,.85);
-  --line:rgba(150,200,160,.14); --line2:rgba(150,200,160,.08);
-  --t1:#ece9e2; --t2:#a8a396; --t3:#6e6a5f;
-  --heat:#ff4530; --heat2:#ff9d3c; --hot:#ffd9a0;
-  --teal:#3fd4a4; --amber:#ffb340; --dn:#ff5a4e;
-  --acc:#3fd4a4; --acc2:#7be8c8;
-  --font-d:'Bebas Neue', 'Arial Narrow', sans-serif;
-  --font-b:'Inter', -apple-system, sans-serif;
+  --black:#110e08; --black2:#1c180d; --white:#ffffff; --offwhite:#e8e5dc;
+  --cream:#faf7f0; --cream2:#f2efe7; --ink:#110e08; --ink-body:#1f1a14;
+  --muted-d:#a09c8f; --subtle-d:#6a6760; --muted-l:#5c5648; --subtle-l:#8a8576;
+  --hair-d:rgba(255,255,255,.08); --hair-d2:rgba(255,255,255,.18);
+  --hair-l:#d8d2c2; --hair-l2:#b8b09c;
+  --lime:#ccff00; --lime-bright:#dbff40; --lime-deep:#a8d400; --on-brand:#110e08;
+  --red:#ff3b30; --mono:"SF Mono","JetBrains Mono",ui-monospace,Menlo,monospace;
+  --serif:"Source Serif 4",Georgia,"Times New Roman",serif;
+  --sans:"Inter",-apple-system,"Helvetica Neue",sans-serif;
 }
-body[data-mode="live"]{ --acc:#ff4530; --acc2:#ff9d3c; }
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
-body{background:var(--bg);color:var(--t1);font:15px/1.6 var(--font-b);-webkit-font-smoothing:antialiased;overflow-x:hidden}
-::selection{background:var(--acc);color:#040705}
-::-webkit-scrollbar{width:10px}
-::-webkit-scrollbar-thumb{background:#22301f;border-radius:6px;border:2px solid var(--bg)}
-
-/* film grain + scanlines */
-body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:99;opacity:.05;
-  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/><feColorMatrix type='saturate' values='0'/></filter><rect width='120' height='120' filter='url(%23n)' opacity='.6'/></svg>")}
-.scan{position:relative}
-.scan::before{content:'';position:absolute;inset:0;pointer-events:none;border-radius:inherit;opacity:.5;
-  background:repeating-linear-gradient(0deg, transparent 0 3px, rgba(0,0,0,.16) 3px 4px)}
+body{background:var(--black);color:var(--white);font:16px/1.55 var(--sans);-webkit-font-smoothing:antialiased}
+::selection{background:var(--lime);color:var(--on-brand)}
+a{color:inherit}
+::-webkit-scrollbar{width:12px}
+::-webkit-scrollbar-thumb{background:#35322d;border-radius:8px;border:3px solid var(--black)}
 
 /* ============ NAV ============ */
-.nav{position:fixed;top:0;left:0;right:0;z-index:50;display:flex;align-items:center;gap:22px;
-  padding:0 26px;height:60px;background:rgba(7,10,8,.82);backdrop-filter:blur(14px);
-  border-bottom:1px solid var(--line2);transform:translateY(-100%);transition:transform .35s}
-.nav.show{transform:translateY(0)}
-.nav .nm{font-family:var(--font-d);font-size:22px;letter-spacing:5px;color:#fff}
-.nav .nm i{font-style:normal;color:var(--acc)}
-.nav a{color:var(--t2);text-decoration:none;font-size:12.5px;font-weight:600;letter-spacing:1.6px;text-transform:uppercase;transition:.2s}
-.nav a:hover{color:var(--acc)}
+.nav{position:sticky;top:0;z-index:40;background:var(--black);display:flex;align-items:center;gap:26px;padding:0 34px;height:64px;border-bottom:1px solid var(--hair-d)}
+.wordmark{font:400 21px var(--serif);letter-spacing:.5px}
+.wordmark i{font-style:normal;color:var(--lime)}
 .nav .sp{flex:1}
-.nav .st{display:flex;align-items:center;gap:8px;font-size:11px;letter-spacing:1.4px;color:var(--t2);font-weight:700}
-.nav .dot{width:9px;height:9px;border-radius:50%;background:var(--t3)}
-.nav .dot.g{background:var(--teal);box-shadow:0 0 9px var(--teal)}
-.nav .dot.a{background:var(--amber);box-shadow:0 0 9px var(--amber)}
-.nav .dot.r{background:var(--dn);box-shadow:0 0 9px var(--dn)}
+.nav .stat{display:flex;align-items:center;gap:9px;font-size:13px;color:var(--muted-d)}
+.nav .stat .d{width:8px;height:8px;border-radius:50%;background:var(--subtle-d)}
+.nav .stat .d.g{background:var(--lime)} .nav .stat .d.a{background:#f59e0b} .nav .stat .d.r{background:var(--red)}
+.nav .clk{font:500 12.5px var(--mono);color:var(--muted-d);font-variant-numeric:tabular-nums}
+.nav .lnk{font-size:13px;color:var(--muted-d);text-decoration:none;letter-spacing:.2px}
+.nav .lnk:hover{color:var(--white)}
 
-/* ============ HERO ============ */
-.hero{position:relative;min-height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:80px 22px 60px;overflow:hidden}
-.hero .bg{position:absolute;inset:0;background:url("https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1800&q=70&fm=jpg") center/cover;filter:brightness(.38) saturate(.75) contrast(1.08)}
-.hero .bg2{position:absolute;inset:0;background:url("https://images.unsplash.com/photo-1448375240586-882707db888b?w=1400&q=70&fm=jpg") center/cover;mix-blend-mode:overlay;opacity:.5}
-.hero .fog{position:absolute;inset:0;background:
-  radial-gradient(120% 90% at 50% 108%, rgba(9,14,10,.96) 0%, rgba(9,14,10,.55) 42%, transparent 72%),
-  linear-gradient(180deg, rgba(7,10,8,.88) 0%, rgba(7,10,8,.25) 34%, rgba(7,10,8,.65) 78%, var(--bg) 100%)}
-body[data-mode="live"] .hero .fog{background:
-  radial-gradient(120% 90% at 50% 108%, rgba(20,6,4,.96) 0%, rgba(24,8,5,.6) 42%, transparent 72%),
-  linear-gradient(180deg, rgba(10,5,4,.9) 0%, rgba(12,6,5,.28) 34%, rgba(10,5,4,.7) 78%, var(--bg) 100%)}
-.hero .beams{position:absolute;inset:0;opacity:.6;background:
-  radial-gradient(46% 26% at 30% 6%, rgba(120,220,170,.13), transparent 70%),
-  radial-gradient(52% 30% at 74% 12%, rgba(120,220,170,.09), transparent 70%)}
-.hero>*{position:relative;z-index:2}
-.kicker{font-size:12px;letter-spacing:6px;font-weight:700;color:var(--acc2);text-transform:uppercase;margin-bottom:14px}
-.kicker::before,.kicker::after{content:'///';color:var(--t3);margin:0 12px;letter-spacing:0}
-.h1{font-family:var(--font-d);font-size:clamp(72px,14vw,190px);line-height:.9;letter-spacing:10px;color:#fff;
-  text-shadow:0 0 60px rgba(63,212,164,.25), 0 4px 30px rgba(0,0,0,.7)}
-body[data-mode="live"] .h1{text-shadow:0 0 60px rgba(255,69,48,.35), 0 4px 30px rgba(0,0,0,.7)}
-.h1 em{font-style:normal;color:var(--acc)}
-.hero .tag{margin-top:16px;max-width:560px;color:var(--t2);font-size:15.5px;line-height:1.65}
-.hero .tag b{color:var(--t1)}
-.hero-cta{display:flex;gap:14px;margin-top:30px;flex-wrap:wrap;justify-content:center}
-.btn-hero{padding:15px 34px;border-radius:8px;border:1px solid var(--acc);background:linear-gradient(180deg,var(--acc),color-mix(in srgb,var(--acc) 70%,#000));color:#04120c;font-weight:800;font-size:13.5px;letter-spacing:2.5px;cursor:pointer;box-shadow:0 0 34px color-mix(in srgb,var(--acc) 40%,transparent);transition:.2s}
-.btn-hero.ghost{background:transparent;color:var(--acc);box-shadow:none}
-.btn-hero:hover{transform:translateY(-2px);box-shadow:0 6px 44px color-mix(in srgb,var(--acc) 55%,transparent)}
-
-/* the reticle */
-.reticle{margin-top:44px;width:min(520px,92vw)}
-.reticle svg{width:100%;display:block}
-.reticle .track{stroke:var(--acc);filter:drop-shadow(0 0 6px var(--acc))}
-.reticle text{font-family:var(--font-b);font-size:9.5px;letter-spacing:2.5px;fill:var(--acc2);font-weight:700}
-.reticle .big{font-family:var(--font-d);font-size:30px;letter-spacing:4px;fill:#fff}
-@keyframes lockpulse{0%,100%{opacity:.85}50%{opacity:1}}
-.reticle .track{animation:lockpulse 2.2s ease-in-out infinite}
-
-/* scroll cue */
-.cue{position:absolute;bottom:26px;left:50%;transform:translateX(-50%);color:var(--t3);font-size:10.5px;letter-spacing:4px;font-weight:700}
-.cue::after{content:'';display:block;width:1px;height:34px;background:linear-gradient(var(--acc),transparent);margin:8px auto 0}
-
-/* ============ SECTIONS ============ */
-section{max-width:1180px;margin:0 auto;padding:84px 22px 10px}
-.shead{margin-bottom:36px}
-.shead .sk{font-size:11px;letter-spacing:5px;font-weight:800;color:var(--acc);text-transform:uppercase}
-.shead h2{font-family:var(--font-d);font-size:clamp(40px,6vw,74px);letter-spacing:4px;line-height:.95;color:#fff;margin-top:8px}
-.shead p{color:var(--t2);max-width:640px;margin-top:12px;font-size:14.5px}
-.reveal{opacity:0;transform:translateY(26px);transition:opacity .7s ease,transform .7s ease}
-.reveal.in{opacity:1;transform:none}
-
-/* brief */
-.brief{display:grid;grid-template-columns:1fr 1fr;gap:26px;align-items:stretch}
-@media(max-width:900px){.brief{grid-template-columns:1fr}}
-.brief .ph{border-radius:14px;overflow:hidden;position:relative;min-height:380px;border:1px solid var(--line)}
-.brief .ph img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:brightness(.62) saturate(.8)}
-.brief .ph .cap{position:absolute;left:0;right:0;bottom:0;padding:22px;background:linear-gradient(transparent, rgba(5,8,6,.94));font-size:13px;color:var(--t2)}
-.brief .ph .cap b{color:#fff;font-family:var(--font-d);font-size:21px;letter-spacing:2px;display:block;margin-bottom:4px}
-.tline{display:flex;flex-direction:column;gap:0;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px;backdrop-filter:blur(8px)}
-.tstep{display:flex;gap:16px;padding:13px 2px;border-bottom:1px dashed var(--line)}
-.tstep:last-child{border-bottom:0}
-.tstep .tt{font-family:var(--font-d);font-size:19px;color:var(--acc);width:58px;flex:none;letter-spacing:1px;padding-top:2px}
-.tstep .tx .a{font-weight:700;font-size:14px;color:#fff}
-.tstep .tx .b{font-size:12.5px;color:var(--t2);line-height:1.55;margin-top:2px}
-.tstep .tx .b i{font-style:normal;color:var(--acc2)}
-
-/* record */
-.record-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px}
-@media(max-width:860px){.record-grid{grid-template-columns:repeat(2,1fr)}}
-.rc{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 18px 15px;backdrop-filter:blur(8px);position:relative;overflow:hidden}
-.rc::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--acc),transparent);opacity:.5}
-.rc .l{font-size:10px;letter-spacing:2.2px;color:var(--t3);font-weight:700;text-transform:uppercase}
-.rc .v{font-family:var(--font-d);font-size:40px;letter-spacing:1px;color:#fff;margin-top:6px;line-height:1}
-.rc .v.up{color:var(--teal)} .rc .v.dn{color:var(--dn)}
-.rc .s{font-size:11px;color:var(--t3);margin-top:5px}
-.quote{font-family:var(--font-d);font-size:26px;letter-spacing:3px;color:var(--t2);margin:6px 0 14px}
-.quote i{font-style:normal;color:var(--acc)}
-.eqwrap{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;backdrop-filter:blur(8px)}
-.eqwrap .eh{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
-.eqwrap .eh .a{font-size:11px;letter-spacing:2.4px;color:var(--t3);font-weight:700}
-.eqwrap .eh .b{font-size:11px;color:var(--t3)}
-svg.thermal{width:100%;height:170px;display:block}
-.killsheet{margin-top:14px;background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden}
-table.ks{width:100%;border-collapse:collapse;font-size:13px}
-.ks th{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--t3);text-align:left;padding:11px 16px;border-bottom:1px solid var(--line)}
-.ks td{padding:10px 16px;border-bottom:1px solid var(--line2);font-variant-numeric:tabular-nums}
-.ks tr:last-child td{border:0}
-.ks tr:hover td{background:rgba(120,200,150,.04)}
-.pos{color:var(--teal);font-weight:700} .neg{color:var(--dn);font-weight:700}
-.badge{font-size:9.5px;font-weight:800;letter-spacing:1px;padding:3px 9px;border-radius:5px}
-.badge.VIRTUAL{background:rgba(63,212,164,.13);color:var(--teal)}
-.badge.LIVE{background:rgba(255,69,48,.16);color:var(--dn)}
-.badge.BACKTEST{background:rgba(255,179,64,.14);color:var(--amber)}
-.cArrow{color:var(--teal);font-weight:700} .pArrow{color:var(--dn);font-weight:700}
-
-/* calendar */
-.mcards{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px}
-.mc{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;backdrop-filter:blur(8px);cursor:pointer;transition:border-color .25s, transform .25s}
-.mc:hover{border-color:var(--acc);transform:translateY(-2px)}
-.mc.open{border-color:var(--acc);box-shadow:0 0 30px color-mix(in srgb,var(--acc) 14%,transparent)}
-.mc-top{display:flex;gap:14px;align-items:center}
-.mc-date{flex:none;width:64px;text-align:center;border:1px solid var(--line);border-radius:10px;padding:7px 0;background:var(--bg)}
-.mc-date .d1{font-family:var(--font-d);font-size:25px;color:#fff;line-height:1}
-.mc-date .d2{font-size:9px;letter-spacing:2px;color:var(--t3)}
-.mc .tt{font-weight:700;font-size:15px;color:#fff}
-.mc .ss{font-size:12px;color:var(--t2);margin-top:3px;line-height:1.5}
-.mc .cd{margin-left:auto;text-align:right}
-.mc .cd .a{font-size:10px;color:var(--t3);letter-spacing:1px}
-.mc .cd .b{font-family:var(--font-d);font-size:21px;color:var(--acc);letter-spacing:1px}
-.mc .imp{display:inline-block;font-size:9px;font-weight:800;letter-spacing:1.4px;padding:3px 8px;border-radius:4px;margin-top:7px}
-.imp.h{background:rgba(255,69,48,.15);color:var(--dn)}
-.imp.m{background:rgba(255,179,64,.14);color:var(--amber)}
-.mc .more{display:none;margin-top:12px;padding-top:12px;border-top:1px dashed var(--line);font-size:12.5px;color:var(--t2);line-height:1.6}
-.mc .more b{color:var(--acc2)}
-.mc.open .more{display:block}
-
-/* controls */
-.ctrl{display:grid;grid-template-columns:1.05fr .95fr;gap:14px}
-@media(max-width:900px){.ctrl{grid-template-columns:1fr}}
-.cc{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px;backdrop-filter:blur(8px)}
-.cc .cl{font-size:10px;letter-spacing:2.4px;color:var(--t3);font-weight:800;text-transform:uppercase;margin-bottom:10px}
-.seg{display:inline-flex;background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:3px}
-.seg button{border:0;background:transparent;color:var(--t2);font-size:12px;font-weight:700;padding:7px 16px;border-radius:7px;cursor:pointer;letter-spacing:1px;transition:.2s}
-.seg button.on{background:var(--acc);color:#04120c}
-.seg button:disabled{opacity:.3;cursor:not-allowed}
-.riskrow{display:flex;align-items:center;gap:14px}
-.risknum{width:70px;background:var(--bg);border:1px solid var(--line);color:#fff;font-size:17px;font-weight:800;text-align:center;padding:8px 4px;border-radius:9px}
-.risknum:focus{outline:none;border-color:var(--acc)}
-input[type=range]{-webkit-appearance:none;flex:1;height:5px;border-radius:99px;background:linear-gradient(90deg,var(--acc) var(--fill,20%),#1c2419 var(--fill,20%));outline:none}
-input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:#fff;border:4px solid var(--acc);cursor:pointer;box-shadow:0 0 12px var(--acc)}
-.mnote{font-size:12px;color:var(--t2);line-height:1.6;margin:8px 0 16px}
-.mnote i{font-style:normal;color:var(--acc2)}
-.bigrow{display:flex;gap:10px;margin-top:6px}
-.btn-big{flex:1.6;padding:16px;border:0;border-radius:10px;background:linear-gradient(180deg,var(--acc),color-mix(in srgb,var(--acc) 72%,#000));color:#04120c;font-weight:800;font-size:15px;letter-spacing:2.5px;cursor:pointer;box-shadow:0 6px 30px color-mix(in srgb,var(--acc) 35%,transparent)}
-.btn-big:disabled{opacity:.35;cursor:not-allowed;box-shadow:none}
-.btn-choppa{flex:1;padding:16px;border:1px solid var(--dn);border-radius:10px;background:transparent;color:var(--dn);font-family:var(--font-d);font-size:19px;letter-spacing:2px;cursor:pointer}
-.btn-choppa:disabled{opacity:.3;cursor:not-allowed}
-.srow{display:flex;align-items:center;gap:12px;padding:10px 2px;border-bottom:1px dashed var(--line)}
-.srow:last-child{border-bottom:0}
-.srow .sq{width:10px;height:10px;border-radius:3px;flex:none;background:var(--t3)}
-.srow .sq.g{background:var(--teal);box-shadow:0 0 8px var(--teal)}
-.srow .sq.a{background:var(--amber);box-shadow:0 0 8px var(--amber)}
-.srow .sq.r{background:var(--dn)}
-.srow .n{font-weight:700;font-size:13.5px;color:#fff}
-.srow .d{font-size:11.5px;color:var(--t3)}
-.srow .v{margin-left:auto;font-size:10.5px;letter-spacing:1.6px;font-weight:800}
-.inp{width:100%;background:var(--bg);border:1px solid var(--line);color:var(--t1);padding:10px 12px;border-radius:9px;font-size:12.5px;margin-bottom:9px}
-.inp:focus{outline:none;border-color:var(--acc)}
-.btn{width:100%;padding:11px;border-radius:9px;border:1px solid var(--acc);background:transparent;color:var(--acc);font-weight:800;font-size:12.5px;letter-spacing:1.6px;cursor:pointer;transition:.2s}
-.btn:hover{background:var(--acc);color:#04120c}
-.knote{font-size:12px;color:var(--t3);margin-top:10px;line-height:1.5}
-.mayday{display:none;margin:0 auto 20px;max-width:1180px;padding:11px 18px;border:1px solid var(--dn);border-radius:10px;background:rgba(255,69,48,.08);color:#ffb1a8;font-size:13px;width:calc(100% - 44px)}
+/* ============ HERO BAND (dark) ============ */
+.hero{padding:96px 34px 72px;max-width:1080px;margin:0 auto}
+.kick{font:600 12px var(--sans);letter-spacing:.22em;text-transform:uppercase;color:var(--muted-d);margin-bottom:22px}
+.headline{font:400 clamp(44px,7vw,84px)/1.08 var(--serif);letter-spacing:-.5px;color:var(--white);max-width:900px}
+.headline b{font-weight:500;color:var(--lime)}
+.headline .muted{color:var(--muted-d)}
+.hero .sub{color:var(--offwhite);max-width:620px;margin-top:26px;font-size:16.5px}
+.hero .actions{display:flex;gap:12px;margin-top:38px;align-items:center}
+.pill{display:inline-flex;align-items:center;gap:8px;height:48px;padding:0 26px;border-radius:36px;background:var(--lime);color:var(--on-brand);font:600 15px var(--sans);letter-spacing:.01em;border:0;cursor:pointer;transition:background .15s,transform .15s}
+.pill:hover{background:var(--lime-bright)}
+.pill:disabled{opacity:.4;cursor:not-allowed}
+.pill.ghost{background:transparent;color:var(--white);border:1px solid var(--hair-d2)}
+.pill.ghost:hover{border-color:var(--white)}
+.pill.live{background:var(--red);color:#fff}
+.pill.live:hover{background:#ff5147}
+.hstat{display:flex;gap:44px;margin-top:56px;padding-top:30px;border-top:1px solid var(--hair-d);flex-wrap:wrap}
+.hv .k{font:600 11px var(--sans);letter-spacing:.18em;text-transform:uppercase;color:var(--subtle-d)}
+.hv .v{font:500 26px/1.2 var(--mono);font-variant-numeric:tabular-nums;color:var(--white);margin-top:7px}
+.hv .v.up{color:var(--lime)} .hv .v.dn{color:var(--red)} .hv .v.sm{font-size:17px}
+.hv .s{font-size:12.5px;color:var(--subtle-d);margin-top:5px}
+.svc{display:flex;flex-direction:column;gap:9px;margin-top:9px}
+.svc .r{display:flex;align-items:center;gap:10px;font-size:13.5px;color:var(--muted-d)}
+.svc .r .d{width:8px;height:8px;border-radius:50%;background:var(--subtle-d);flex:none}
+.svc .r .d.g{background:var(--lime)} .svc .r .d.a{background:#f59e0b} .svc .r .d.r{background:var(--red)}
+.svc .r b{color:var(--offwhite);font-weight:500}
+.mayday{display:none;max-width:1080px;margin:0 auto;padding:14px 34px;border-top:1px solid var(--red);background:rgba(255,59,48,.07);color:#ffb3ad;font-size:14px}
 .mayday.show{display:block}
 
+/* ============ LIGHT BANDS ============ */
+.band-light{background:var(--cream);color:var(--ink-body);padding:88px 34px}
+.band-light .inner{max-width:1080px;margin:0 auto}
+.shead{display:flex;align-items:baseline;justify-content:space-between;gap:20px;margin-bottom:36px;flex-wrap:wrap}
+.shead h2{font:400 40px/1.1 var(--serif);letter-spacing:-.3px;color:var(--ink)}
+.shead .side{font-size:13.5px;color:var(--muted-l)}
+
+/* record */
+.mega{font:700 clamp(56px,9vw,96px)/1 var(--mono);letter-spacing:-2px;color:var(--ink);font-variant-numeric:tabular-nums}
+.mega.up{color:#3e7a00} .mega.dn{color:var(--red)}
+.mega-sub{font-size:14px;color:var(--muted-l);margin-top:10px}
+.sparkrow{margin:34px 0 8px;background:var(--white);border:1px solid var(--hair-l);border-radius:12px;padding:20px 22px}
+.sparkrow .h{display:flex;justify-content:space-between;font-size:12px;color:var(--subtle-l);letter-spacing:.08em;text-transform:uppercase;font-weight:600}
+svg.spk{width:100%;height:110px;display:block;margin-top:10px}
+.statline{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:16px}
+@media(max-width:840px){.statline{grid-template-columns:repeat(2,1fr)}}
+.sl{background:var(--white);border:1px solid var(--hair-l);border-radius:12px;padding:16px 18px}
+.sl .k{font:600 11px var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--subtle-l)}
+.sl .v{font:600 22px var(--mono);font-variant-numeric:tabular-nums;color:var(--ink);margin-top:6px}
+.sl .v.up{color:#3e7a00} .sl .v.dn{color:var(--red)}
+.sl .s{font-size:12px;color:var(--subtle-l);margin-top:4px}
+
+/* trades table */
+.trades{margin-top:40px;background:var(--white);border:1px solid var(--hair-l);border-radius:12px;overflow:hidden}
+table.tb{width:100%;border-collapse:collapse;font-size:14px}
+.tb th{font:600 11px var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--subtle-l);text-align:left;padding:13px 20px;border-bottom:1px solid var(--hair-l)}
+.tb td{padding:12px 20px;border-bottom:1px solid var(--cream2);font-variant-numeric:tabular-nums;color:var(--ink-body)}
+.tb tr:last-child td{border-bottom:0}
+.tb tr:hover td{background:var(--cream2)}
+.tb .dt{color:var(--muted-l);font:500 12.5px var(--mono)}
+.tag{display:inline-block;font:600 11px var(--sans);padding:3px 10px;border-radius:999px;letter-spacing:.04em}
+.tag.virtual{background:rgba(0,0,0,.06);color:var(--muted-l)}
+.tag.live{background:rgba(255,59,48,.1);color:var(--red)}
+.tag.backtest{background:rgba(245,158,11,.13);color:#92600a}
+.up{color:#3e7a00;font-weight:600} .dn{color:var(--red);font-weight:600}
+.call{color:#3e7a00;font-weight:600} .put{color:var(--red);font-weight:600}
+.emptyrow td{padding:34px 20px;text-align:center;color:var(--subtle-l);font-size:14px}
+.emptyrow b{color:var(--muted-l)}
+
+/* calendar */
+.clist{background:var(--white);border:1px solid var(--hair-l);border-radius:12px;overflow:hidden}
+.crow{display:flex;gap:18px;align-items:center;padding:16px 22px;border-bottom:1px solid var(--cream2);cursor:pointer}
+.crow:last-child{border-bottom:0}
+.crow:hover{background:var(--cream2)}
+.crow.open{background:var(--cream2)}
+.cdate{flex:none;width:56px;text-align:center}
+.cdate .d1{font:600 15px var(--mono);color:var(--ink);font-variant-numeric:tabular-nums}
+.cdate .d2{font-size:10.5px;color:var(--subtle-l);letter-spacing:.1em;text-transform:uppercase}
+.cmain{min-width:0;flex:1}
+.cmain .t{font:500 17px var(--serif);color:var(--ink)}
+.cmain .w{font-size:12.5px;color:var(--subtle-l);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cright{flex:none;text-align:right}
+.cright .in{font:600 14px var(--mono);color:#3e7a00;font-variant-numeric:tabular-nums}
+.cright .tm{font-size:11.5px;color:var(--subtle-l);margin-top:2px;font:500 11.5px var(--mono)}
+.imp{display:inline-block;font:600 10px var(--sans);letter-spacing:.12em;padding:3px 9px;border-radius:999px;margin-left:10px;vertical-align:2px}
+.imp.h{background:rgba(255,59,48,.09);color:var(--red)}
+.imp.m{background:rgba(245,158,11,.12);color:#92600a}
+.cmore{display:none;padding:0 22px 18px;font-size:14px;color:var(--muted-l);line-height:1.65}
+.cmore b{color:var(--ink);font-weight:600}
+.crow.open + .cmore,.crow.open .cmore{display:block}
+
+/* ============ CONTROL BAND (dark) ============ */
+.band-dark{background:var(--black);color:var(--offwhite);padding:88px 34px}
+.band-dark .inner{max-width:1080px;margin:0 auto}
+.ctrlgrid{display:grid;grid-template-columns:1.1fr .9fr;gap:56px}
+@media(max-width:900px){.ctrlgrid{grid-template-columns:1fr}}
+.cl{font:600 11px var(--sans);letter-spacing:.18em;text-transform:uppercase;color:var(--subtle-d);margin:26px 0 12px}
+.cl:first-child{margin-top:0}
+.seg{display:inline-flex;background:var(--black2);border:1px solid var(--hair-d);border-radius:36px;padding:3px}
+.seg button{border:0;background:transparent;color:var(--muted-d);font:500 13.5px var(--sans);padding:9px 20px;border-radius:36px;cursor:pointer;transition:.15s}
+.seg button.on{background:var(--white);color:var(--ink);font-weight:600}
+.seg button:disabled{opacity:.35;cursor:not-allowed}
+.riskrow{display:flex;align-items:center;gap:16px}
+.risknum{width:74px;background:var(--black2);border:1px solid var(--hair-d2);color:var(--white);font:600 17px var(--mono);text-align:center;padding:10px 4px;border-radius:10px}
+.risknum:focus{outline:none;border-color:var(--lime)}
+input[type=range]{-webkit-appearance:none;flex:1;height:4px;border-radius:99px;background:linear-gradient(90deg,var(--lime) var(--fill,20%),#35322d var(--fill,20%));outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--white);cursor:pointer}
+.mnote{font-size:13.5px;color:var(--muted-d);line-height:1.6;margin:10px 0 4px}
+.mnote b{color:var(--offwhite);font-weight:600}
+.btnrow{display:flex;gap:12px;margin-top:30px}
+.sysrow{display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid var(--hair-d)}
+.sysrow:last-of-type{border-bottom:0}
+.sysrow .d{width:9px;height:9px;border-radius:50%;background:var(--subtle-d);flex:none}
+.sysrow .d.g{background:var(--lime)} .sysrow .d.a{background:#f59e0b} .sysrow .d.r{background:var(--red)}
+.sysrow .n{font-weight:600;font-size:14.5px;color:var(--white)}
+.sysrow .ds{font-size:12.5px;color:var(--subtle-d)}
+.sysrow .v{margin-left:auto;font:600 11px var(--sans);letter-spacing:.14em}
+.fundsline{margin-top:18px;padding:14px 18px;background:var(--black2);border:1px solid var(--hair-d);border-radius:12px;font:500 15px var(--mono);font-variant-numeric:tabular-nums;color:var(--offwhite)}
+.inp{width:100%;background:var(--black2);border:1px solid var(--hair-d2);color:var(--white);padding:12px 15px;border-radius:10px;font-size:13.5px;margin-bottom:10px}
+.inp:focus{outline:none;border-color:var(--lime)}
+.btn-outline{width:100%;padding:13px;border-radius:36px;border:1px solid var(--hair-d2);background:transparent;color:var(--white);font:600 14px var(--sans);cursor:pointer}
+.btn-outline:hover{border-color:var(--lime);color:var(--lime)}
+.knote{font-size:12.5px;color:var(--subtle-d);margin-top:10px;line-height:1.5}
+details.keys{border:1px solid var(--hair-d);border-radius:12px;background:var(--black2);padding:0}
+details.keys summary{cursor:pointer;padding:15px 18px;font:600 13px var(--sans);letter-spacing:.06em;color:var(--muted-d);list-style:none}
+details.keys summary::-webkit-details-marker{display:none}
+details.keys[open] summary{border-bottom:1px solid var(--hair-d)}
+details.keys .body{padding:18px}
+
 /* footer */
-footer{margin-top:70px;border-top:1px solid var(--line2);padding:34px 22px 44px;text-align:center}
-footer .f1{font-family:var(--font-d);font-size:30px;letter-spacing:6px;color:#fff}
-footer .f1 em{font-style:normal;color:var(--acc)}
-footer .f2{font-size:12px;color:var(--t3);margin-top:8px}
-footer .f2 b{color:var(--t2)}
-footer .choppa{margin-top:18px;font-family:var(--font-d);font-size:17px;letter-spacing:4px;color:var(--t3)}
-footer .choppa i{font-style:normal;color:var(--heat2)}
+footer{background:var(--black);border-top:1px solid var(--hair-d);padding:44px 34px 60px;text-align:center;color:var(--subtle-d)}
+footer .wm{font:400 26px var(--serif);color:var(--white)}
+footer .wm i{font-style:normal;color:var(--lime)}
+footer .l1{font-size:13px;margin-top:10px}
+footer .l1 b{color:var(--offwhite);font-weight:500}
+footer .l2{font:400 15px var(--serif);font-style:italic;color:var(--muted-d);margin-top:16px}
 </style>
 </head>
-<body data-mode="practice">
+<body>
 
-<nav class="nav" id="nav">
-  <div class="nm">PRED<i>A</i>TOR</div>
-  <a href="#brief">The Brief</a><a href="#record">The Record</a><a href="#calendar">The Calendar</a><a href="#controls">Mission Control</a>
+<nav class="nav">
+  <div class="wordmark">Pred<i>a</i>tor</div>
+  <a class="lnk" href="#record">Record</a><a class="lnk" href="#calendar">Calendar</a><a class="lnk" href="#controls">Control</a>
   <div class="sp"></div>
-  <div class="st"><span class="dot" id="nav-dot"></span><span id="nav-status">STANDBY</span></div>
+  <div class="stat"><span class="d" id="n-dot"></span><span id="n-status">STANDBY</span></div>
+  <div class="clk" id="clock"></div>
 </nav>
 
 <div class="mayday" id="alertbar"></div>
 
-<!-- ============ HERO ============ -->
-<header class="hero" id="top">
-  <div class="bg"></div><div class="bg2"></div><div class="fog"></div><div class="beams"></div>
-  <div class="kicker" id="kicker">The hunt is on</div>
-  <h1 class="h1">PRED<em>A</em>TOR</h1>
-  <p class="tag">An autonomous engine that hunts <b>NIFTY &amp; SENSEX options</b> — but only on the wildest days of the calendar.
-  Paper mode until it earns blood. <b>No overnight positions. No revenge trades. No mercy for chop.</b></p>
-  <div class="hero-cta">
-    <button class="btn-hero" onclick="document.getElementById('controls').scrollIntoView()">START THE HUNT</button>
-    <button class="btn-hero ghost" onclick="document.getElementById('brief').scrollIntoView()">HOW IT HUNTS</button>
+<!-- HERO -->
+<header class="hero">
+  <div class="kick">Autonomous options engine · Paper mode until proven</div>
+  <h1 class="headline" id="headline">…</h1>
+  <p class="sub">Predator sleeps on ordinary days. On the handful of wild ones — rate decisions, expiries, overnight shocks — it hunts NIFTY &amp; SENSEX options with strict risk discipline. No overnight positions, ever.</p>
+  <div class="actions">
+    <button class="pill" id="start">&#9654; Start the hunt</button>
+    <button class="pill ghost" id="stop" disabled>Abort</button>
   </div>
-  <div class="reticle" id="reticle">
-    <svg viewBox="0 0 520 150">
-      <g class="track" fill="none" stroke-width="1.6">
-        <path d="M60 20 L110 20 M60 20 L60 52"/>
-        <path d="M460 20 L410 20 M460 20 L460 52"/>
-        <path d="M60 130 L110 130 M60 130 L60 98"/>
-        <path d="M460 130 L410 130 M460 130 L460 98"/>
-      </g>
-      <path class="track" d="M260 58 L286 88 L260 118 L234 88 Z" fill="none" stroke-width="1.6"/>
-      <text x="120" y="30">TARGET SCAN</text>
-      <text x="330" y="30" id="ret-date">—</text>
-      <text class="big" x="260" y="83" text-anchor="middle" id="ret-name">STANDBY</text>
-      <text x="130" y="112" id="ret-sub">waiting for the next catalyst window</text>
-    </svg>
+  <div class="hstat">
+    <div class="hv"><div class="k">Net P&amp;L</div><div class="v" id="h-pnl">—</div><div class="s" id="h-pnl-s">the record decides everything</div></div>
+    <div class="hv"><div class="k">Next hunt</div><div class="v sm" id="h-next">—</div><div class="s" id="h-next-s"></div></div>
+    <div class="hv"><div class="k">Dhan funds</div><div class="v" id="h-funds">—</div><div class="s" id="h-funds-s"></div></div>
+    <div class="hv"><div class="k">Systems</div><div class="svc" id="h-svc"></div></div>
   </div>
-  <div class="cue">SCROLL</div>
 </header>
 
-<main>
-<!-- ============ BRIEF ============ -->
-<section id="brief">
-  <div class="shead reveal">
-    <div class="sk">Chapter 01</div>
-    <h2>THE BRIEF</h2>
-    <p>Most days the market is noise. A handful of days each month, it moves like a stampede — rate decisions, expiries, overnight US shocks, heavyweight earnings. This engine sleeps on ordinary days and only wakes for those. Here is exactly what happens on a hunt day.</p>
-  </div>
-  <div class="brief">
-    <div class="ph reveal">
-      <img src="https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=1100&q=70&fm=jpg" alt="misty jungle" onerror="this.style.display='none'">
-      <div class="cap"><b>THE WAITING GAME</b>The wolf doesn't chase. It marks the first 15 minutes, draws the range, and lets the market walk into the open.</div>
+<!-- RECORD -->
+<div class="band-light" id="record">
+  <div class="inner">
+    <div class="shead"><h2>The Record</h2><div class="side">every completed hunt, net of estimated costs</div></div>
+    <div class="mega" id="r-mega">—</div>
+    <div class="mega-sub" id="r-mega-s">no completed hunts yet — the first one writes history</div>
+    <div class="sparkrow">
+      <div class="h"><span>Equity trace</span><span id="eq-note">virtual fills · real market data</span></div>
+      <svg class="spk" id="spk" viewBox="0 0 1000 110" preserveAspectRatio="none"></svg>
     </div>
-    <div class="tline reveal">
-      <div class="tstep"><div class="tt">08:30</div><div class="tx"><div class="a">The morning brief</div><div class="b">Autopilot reads the calendar, overnight headlines and India VIX, then grades the day <i>A / B / C</i>. A = full risk. B = half. <i>C — the wolf stays in the trees.</i></div></div></div>
-      <div class="tstep"><div class="tt">09:07</div><div class="tx"><div class="a">Auto-arm</div><div class="b">If the day passed, the engine arms itself. <i>Practice mode needs nothing. Live needs a fresh token + your confirmation.</i></div></div></div>
-      <div class="tstep"><div class="tt">09:15</div><div class="tx"><div class="a">The impulse range</div><div class="b">First 15 minutes get measured. A range under 0.15% = chop — <i>no trade, wolf walks away.</i></div></div></div>
-      <div class="tstep"><div class="tt">BREAK</div><div class="tx"><div class="a">The strike</div><div class="b">Price breaks the range AND the news agrees → buy the <i>ATM option</i>. Calls above the range, puts below. News disagrees → vetoed.</div></div></div>
-      <div class="tstep"><div class="tt">MANAGE</div><div class="tx"><div class="a">Stop · TP1 · Runner</div><div class="b">Stop at −55% of premium. Book 40% at 2×. The rest runs for <i>25×</i> or trails — this runner is where the big money lives.</div></div></div>
-      <div class="tstep"><div class="tt">15:20</div><div class="tx"><div class="a">Flatten. Always.</div><div class="b">Everything closes. <i>No overnight holds, ever.</i> The result lands in the record the same evening.</div></div></div>
+    <div class="statline">
+      <div class="sl"><div class="k">Hunts completed</div><div class="v" id="s-tr">0</div><div class="s" id="s-tr-s">of ~30 candidate days left in 2026</div></div>
+      <div class="sl"><div class="k">Win rate</div><div class="v" id="s-wr">—</div><div class="s">few big wins pay for many small losses</div></div>
+      <div class="sl"><div class="k">Profit factor</div><div class="v" id="s-pf">—</div><div class="s">gross wins ÷ gross losses</div></div>
+      <div class="sl"><div class="k">Real / practice</div><div class="v" id="s-mix">0 / 0</div><div class="s">live orders vs virtual fills</div></div>
+    </div>
+    <div class="trades">
+      <table class="tb">
+        <thead><tr><th>Date</th><th>Hunt</th><th>Type</th><th>Side</th><th>Strike</th><th style="text-align:right">Net P&amp;L</th></tr></thead>
+        <tbody id="tb-body"></tbody>
+      </table>
     </div>
   </div>
-</section>
+</div>
 
-<!-- ============ RECORD ============ -->
-<section id="record">
-  <div class="shead reveal">
-    <div class="sk">Chapter 02</div>
-    <h2>THE RECORD</h2>
-    <p>Every completed hunt lands here — practice and real, net of estimated costs. This report card is the only thing that decides when real money gets unlocked. <span style="color:var(--t3)">("If it bleeds, we can kill it.")</span></p>
+<!-- CALENDAR -->
+<div class="band-light" id="calendar" style="background:var(--cream2)">
+  <div class="inner">
+    <div class="shead"><h2>The Calendar</h2><div class="side">candidates only — the morning grade decides</div></div>
+    <div class="clist" id="clist"></div>
   </div>
-  <div class="record-grid">
-    <div class="rc reveal"><div class="l">Net P&amp;L</div><div class="v" id="r-pnl">—</div><div class="s" id="r-pnl-s">waiting for the first hunt</div></div>
-    <div class="rc reveal"><div class="l">Hunts completed</div><div class="v" id="r-trades">0</div><div class="s" id="r-trades-s">of ~30 candidate days left in 2026</div></div>
-    <div class="rc reveal"><div class="l">Win rate</div><div class="v" id="r-wr">—</div><div class="s">few big wins pay for many small losses</div></div>
-    <div class="rc reveal"><div class="l">Next hunt</div><div class="v" style="font-size:30px" id="r-next">—</div><div class="s" id="r-next-s"></div></div>
-  </div>
-  <div class="eqwrap reveal">
-    <div class="eh"><span class="a">THERMAL TRACE — EQUITY CURVE</span><span class="b" id="eq-note">virtual fills · real market data</span></div>
-    <svg class="thermal" id="eqsvg" viewBox="0 0 1000 170" preserveAspectRatio="none"></svg>
-  </div>
-  <div class="killsheet reveal">
-    <table class="ks">
-      <thead><tr><th>Date</th><th>Hunt</th><th>Type</th><th>Side</th><th>Strike</th><th style="text-align:right">Net P&amp;L</th></tr></thead>
-      <tbody id="ks-body"></tbody>
-    </table>
-  </div>
-</section>
+</div>
 
-<!-- ============ CALENDAR ============ -->
-<section id="calendar">
-  <div class="shead reveal">
-    <div class="sk">Chapter 03</div>
-    <h2>THE CALENDAR</h2>
-    <p>Every candidate day ahead. Tap one for the full story. Red = major impact. The grader decides each morning — the calendar only nominates.</p>
-  </div>
-  <div class="mcards" id="mcards"></div>
-</section>
-
-<!-- ============ CONTROLS ============ -->
-<section id="controls">
-  <div class="shead reveal">
-    <div class="sk">Chapter 04</div>
-    <h2>MISSION CONTROL</h2>
-    <p>Everything a hunt needs, in one place. The governors below are always on — sizing guard, red-flag veto, cool-off, ruin floor.</p>
-  </div>
-  <div class="ctrl">
-    <div class="cc reveal">
-      <div class="cl">Combat mode</div>
-      <div class="seg"><button id="mm-practice" class="on">PRACTICE</button><button id="mm-live">REAL MONEY</button></div>
-      <div class="mnote" id="livewarn" style="display:none;color:#ffb1a8">&#9888; Real orders will hit your Dhan account. A confirm dialog stands guard.</div>
-      <div class="cl" style="margin-top:16px">Hunting ground</div>
-      <div class="seg"><button id="m-in" class="on">NIFTY</button><button id="m-sx">SENSEX</button><button id="m-us" disabled title="RBI LRS law blocks US options for Indian residents">US · SPY (locked)</button></div>
-      <div class="mnote">Autopilot picks the ground for you: NIFTY on event days, SENSEX on Thursday expiries. <i>Lot of 20 on SENSEX = cheaper shots.</i></div>
-      <div class="cl">Max loss per hunt — <span id="riskshow" style="color:var(--acc)">5%</span></div>
-      <div class="riskrow">
-        <input type="number" class="risknum" id="risknum" min="1" max="25" value="5">
-        <input type="range" id="risk" min="1" max="25" value="5">
+<!-- CONTROL -->
+<div class="band-dark" id="controls">
+  <div class="inner">
+    <div class="shead" style="margin-bottom:8px"><h2 style="color:var(--white)">Mission Control</h2><div class="side" style="color:var(--subtle-d)">governors always on — sizing guard, red-flag veto, cool-off, ruin floor</div></div>
+    <div class="ctrlgrid">
+      <div>
+        <div class="cl">Combat mode</div>
+        <div class="seg"><button id="mm-practice" class="on">Practice</button><button id="mm-live">Real money</button></div>
+        <div class="mnote" id="livewarn" style="display:none;color:#ffb3ad">Real orders will hit your Dhan account — a confirm dialog stands guard.</div>
+        <div class="cl">Hunting ground</div>
+        <div class="seg"><button id="m-in" class="on">NIFTY</button><button id="m-sx">SENSEX</button><button id="m-us" disabled title="RBI LRS law blocks US options for Indian residents">US · SPY</button></div>
+        <div class="mnote">Autopilot picks for you: NIFTY on event days, SENSEX on Thursday expiries. <b>Lot 20 on SENSEX = cheaper shots.</b></div>
+        <div class="cl">Max loss per hunt — <span id="riskshow" style="color:var(--lime)">5%</span></div>
+        <div class="riskrow">
+          <input type="number" class="risknum" id="risknum" min="1" max="25" value="5">
+          <input type="range" id="risk" min="1" max="25" value="5">
+        </div>
+        <div class="mnote">Worst case per trade = this % of the account, then the engine walks away. <b>Stop −55% · TP1 2× (book 40%) · runner 25× · flat 15:20 IST · ₹60 est. costs · ruin floor −50% · 2 loss-days = forced rest.</b></div>
+        <div class="btnrow">
+          <button class="pill" id="start2" style="flex:1;justify-content:center">&#9654; Start the hunt</button>
+          <button class="pill ghost" id="stop2" style="flex:.7;justify-content:center;border-color:rgba(255,59,48,.5);color:var(--red)" disabled>Abort</button>
+        </div>
       </div>
-      <div class="mnote">Worst case per trade = this % of the account. Then the engine walks away. <i>Stop −55% · TP1 2× (book 40%) · runner 25× · flat 15:20 · ₹60 est. costs · ruin floor −50% · 2 loss-days = forced rest.</i></div>
-      <div class="bigrow">
-        <button class="btn-big" id="start">&#9654; START THE HUNT</button>
-        <button class="btn-choppa" id="stop" disabled>GET TO THE CHOPPA</button>
+      <div>
+        <div class="cl">System status</div>
+        <div id="sys-rows"></div>
+        <div class="fundsline" id="funds-line">checking Dhan…</div>
+        <div class="cl">Keys &amp; signals</div>
+        <details class="keys">
+          <summary>Open the vault</summary>
+          <div class="body">
+            <input class="inp" id="k-client" placeholder="Dhan client ID">
+            <input class="inp" id="k-token" type="password" placeholder="Dhan access token (auto-minted daily — override only)">
+            <input class="inp" id="k-tgbt" type="password" placeholder="Telegram bot token (from @BotFather)">
+            <input class="inp" id="k-tgchat" placeholder="Telegram chat ID">
+            <button class="btn-outline" id="save-keys">Save keys</button>
+            <div class="knote" id="keystatus">checking…</div>
+          </div>
+        </details>
       </div>
     </div>
-    <div class="cc reveal">
-      <div class="cl">System status</div>
-      <div id="sys-rows"></div>
-      <div class="cl" style="margin-top:18px">Keys &amp; signals</div>
-      <input class="inp" id="k-client" placeholder="Dhan client ID">
-      <input class="inp" id="k-token" type="password" placeholder="Dhan access token (auto-minted daily — override only)">
-      <input class="inp" id="k-tgbt" type="password" placeholder="Telegram bot token (from @BotFather)">
-      <input class="inp" id="k-tgchat" placeholder="Telegram chat ID">
-      <button class="btn" id="save-keys">SAVE KEYS</button>
-      <div class="knote" id="keystatus">checking…</div>
-      <div class="knote" id="funds-line" style="margin-top:14px"></div>
-    </div>
   </div>
-</section>
-</main>
+</div>
 
 <footer>
-  <div class="f1">PRED<em>A</em>TOR</div>
-  <div class="f2">autonomous catalyst-day options engine · paper mode until proven · powered by <b>GLM 5.3 Flash</b></div>
-  <div class="choppa">IF IT BLEEDS… <i>WE CAN KILL IT.</i></div>
+  <div class="wm">Pred<i>a</i>tor</div>
+  <div class="l1">autonomous catalyst-day options engine · paper mode until proven · powered by <b>GLM 5.3 Flash</b></div>
+  <div class="l2">"No overnight positions. No revenge trades. No mercy for chop."</div>
 </footer>
 
 <script>
 const $=id=>document.getElementById(id);
 const esc=s=>(s??'').toString().replace(/</g,'&lt;');
 const inr=n=>Number(n).toLocaleString('en-IN',{maximumFractionDigits:0});
-function tickClock(){}
 function istNow(){const n=new Date();return new Date(n.getTime()+(330+n.getTimezoneOffset())*60000);}
+function tick(){const t=istNow();$('clock').textContent=t.toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'})+' · '+t.toLocaleTimeString('en-IN',{hour12:false});}
+setInterval(tick,1000);tick();
 
-/* nav on scroll + reveals */
-const nav=$('nav');
-addEventListener('scroll',()=>{nav.classList.toggle('show',scrollY>innerHeight*0.55)},{passive:true});
-const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('in')}),{threshold:.12});
-document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
-
-/* mode */
 let mode='practice';
 function setMode(m){
-  mode=m;document.body.dataset.mode=m;
+  mode=m;
   $('mm-practice').className=m==='practice'?'on':'';
   $('mm-live').className=m==='live'?'on':'';
   $('livewarn').style.display=m==='live'?'block':'none';
+  for(const b of [$('start'),$('start2')]){b.classList.toggle('live',m==='live');b.textContent=m==='live'?'▶ Start — REAL MONEY':'▶ Start the hunt';}
 }
 $('mm-practice').onclick=()=>setMode('practice');
 $('mm-live').onclick=()=>{if(mode!=='live'&&!confirm('SWITCH TO REAL MONEY?\nReal orders will hit your Dhan account.'))return;setMode('live');};
@@ -383,164 +307,152 @@ let selMarket='in';
 $('m-in').onclick=()=>{selMarket='in';$('m-in').classList.add('on');$('m-sx').classList.remove('on');};
 $('m-sx').onclick=()=>{selMarket='in_sensex';$('m-sx').classList.add('on');$('m-in').classList.remove('on');};
 
-/* risk */
 const risk=$('risk'),risknum=$('risknum');
 function paintRisk(v){v=Math.max(1,Math.min(25,Number(v)||5));risk.value=v;risknum.value=v;$('riskshow').textContent=v+'%';risk.style.setProperty('--fill',(v/25*100)+'%');}
 risk.oninput=()=>paintRisk(risk.value);risknum.oninput=()=>paintRisk(risknum.value);paintRisk(5);
 
-/* keys */
 let engineKey=localStorage.getItem('predator_key')||'';
 async function api(path,body){
   const r=await fetch(path,{method:'POST',headers:{'Content-Type':'application/json','X-Engine-Key':engineKey},body:body?JSON.stringify(body):undefined});
   if(r.status===401){const k=prompt('Enter engine key:');if(k){engineKey=k;localStorage.setItem('predator_key',k);}return r;}
   return r;
 }
+async function doStart(){
+  if(mode==='live'&&!confirm('REAL MONEY HUNT — orders will hit your Dhan account. Start?'))return;
+  await api('/api/start',{market:selMarket,live:mode==='live',risk_pct:Number(risknum.value)/100});
+  setTimeout(refresh,900);
+}
+async function doStop(){await api('/api/stop');setTimeout(refresh,900);}
+$('start').onclick=doStart;$('start2').onclick=doStart;$('stop').onclick=doStop;$('stop2').onclick=doStop;
+
 $('save-keys').onclick=async()=>{
   const body={risk_pct:Number(risknum.value)/100};
-  ['k-client','k-token','k-tgbt','k-tgchat'].forEach((id,i)=>{
-    const v=$(id).value.trim(); if(!v)return;
-    body[['dhan_client_id','dhan_access_token','telegram_bot_token','telegram_chat_id'][i]]=v;
-  });
+  const fields=['k-client','k-token','k-tgbt','k-tgchat'],keys=['dhan_client_id','dhan_access_token','telegram_bot_token','telegram_chat_id'];
+  fields.forEach((id,i)=>{const v=$(id).value.trim();if(v)body[keys[i]]=v;});
   const r=await api('/api/secrets',body);
   if(r.status===401){$('keystatus').textContent='wrong engine key';return;}
-  ['k-client','k-token','k-tgbt','k-tgchat'].forEach(id=>$(id).value='');
+  fields.forEach(id=>$(id).value='');
   loadSecrets();
 };
 function loadSecrets(){
   fetch('/api/secrets').then(r=>r.json()).then(s=>{
-    $('keystatus').innerHTML=`dhan client ${s.dhan_client_id?'<span class="pos">set</span>':'unset'} · token <span class="pos">auto-minted</span> · telegram ${s.telegram_ready?'<span class="pos">ready</span>':'unset'}`;
+    $('keystatus').innerHTML=`dhan client ${s.dhan_client_id?'<span class="up">set</span>':'unset'} · token <span class="up">auto-minted</span> · telegram ${s.telegram_ready?'<span class="up">ready</span>':'unset'}`;
   }).catch(()=>{});
 }
 loadSecrets();setInterval(loadSecrets,20000);
 
-$('start').onclick=async()=>{
-  if(mode==='live'&&!confirm('REAL MONEY HUNT — orders will hit your Dhan account. Start?'))return;
-  await api('/api/start',{market:selMarket,live:mode==='live',risk_pct:Number(risknum.value)/100});
-  setTimeout(refresh,900);
-};
-$('stop').onclick=async()=>{await api('/api/stop');setTimeout(refresh,900);};
-
-/* thermal equity trace */
-function thermal(vals){
-  const svg=$('eqsvg');
-  if(!vals||vals.length<2){svg.innerHTML=`<text x="500" y="90" text-anchor="middle" fill="#6e6a5f" font-size="13" letter-spacing="3">THE TRACE APPEARS WITH 2+ COMPLETED HUNTS</text>`;$('eq-note').textContent='virtual fills · real market data';return;}
-  const w=1000,h=170,min=Math.min(...vals),max=Math.max(...vals),rng=(max-min)||1;
-  const pts=vals.map((v,i)=>`${(i/(vals.length-1)*w).toFixed(1)},${(h-20-((v-min)/rng)*(h-40)).toFixed(1)}`);
-  const up=vals[vals.length-1]>=vals[0], col=up?'#3fd4a4':'#ff5a4e';
-  svg.innerHTML=`
-    <defs><linearGradient id="tg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${col}" stop-opacity=".3"/><stop offset="1" stop-color="${col}" stop-opacity="0"/></linearGradient></defs>
-    ${[0.3,0.6].map(f=>`<line x1="0" x2="${w}" y1="${h*f}" y2="${h*f}" stroke="rgba(150,200,160,.1)" stroke-dasharray="2 6"/>`).join('')}
-    <polygon points="0,${h} ${pts.join(' ')} ${w},${h}" fill="url(#tg)"/>
-    <polyline points="${pts.join(' ')}" fill="none" stroke="${col}" stroke-width="2.2" style="filter:drop-shadow(0 0 6px ${col})"/>`;
-  $('eq-note').textContent=`${vals.length} hunts · net ₹${inr(vals[vals.length-1])}`;
+function spark(vals){
+  const svg=$('spk');
+  if(!vals||vals.length<2){svg.innerHTML='<text x="500" y="60" text-anchor="middle" fill="#8a8576" font-size="12" font-family="Inter">the trace appears with 2+ completed hunts</text>';return;}
+  const w=1000,h=110,min=Math.min(...vals),max=Math.max(...vals),rng=(max-min)||1;
+  const pts=vals.map((v,i)=>`${(i/(vals.length-1)*w).toFixed(1)},${(h-14-((v-min)/rng)*(h-28)).toFixed(1)}`);
+  const up=vals[vals.length-1]>=vals[0],col=up?'#3e7a00':'#ff3b30';
+  svg.innerHTML=`<polyline points="${pts.join(' ')}" fill="none" stroke="${col}" stroke-width="2"/>`;
 }
 
-/* calendar cards */
 let lastData=null,openCard=null;
 function toggleCard(d){openCard=openCard===d?null:d;if(lastData)renderCards();}
-function impOf(title){
-  return ['FOMC','RBI','Budget','CPI','Expiry','Results'].some(k=>title.toLowerCase().includes(k.toLowerCase()))?['h','HIGH IMPACT']:['m','MEDIUM'];
-}
+function impOf(title){return ['fomc','rbi','budget','cpi','expiry','results'].some(k=>title.toLowerCase().includes(k))?['h','HIGH']:['m','MED'];}
 function renderCards(){
   const d=lastData;if(!d)return;
   const all=[...(d.events_in||[]),...(d.events_us||[])].sort((a,b)=>a.date.localeCompare(b.date));
-  $('mcards').innerHTML=all.map(e=>{
+  $('clist').innerHTML=all.map(e=>{
     const dt=new Date(e.date+'T00:00:00');
     const days=Math.round((new Date(e.date)-new Date(d.today))/86400000);
     const[impCls,impTxt]=impOf(e.title);
     const open=openCard===e.date;
-    return `<div class="mc ${open?'open':''}" onclick="toggleCard('${e.date}')">
-      <div class="mc-top">
-        <div class="mc-date"><div class="d1">${dt.getDate()} ${dt.toLocaleString('en',{month:'short'}).toUpperCase()}</div><div class="d2">${dt.getFullYear()}</div></div>
-        <div style="min-width:0">
-          <div class="tt">${esc(e.title)}</div>
-          <div class="ss" style="color:var(--t3)">${esc(e.time)} ${e.market==='US'?'ET':'IST'} · ${e.market}</div>
-          <span class="imp ${impCls}">${impTxt}</span>
-        </div>
-        <div class="cd"><div class="a">${dt.toLocaleString('en',{weekday:'short'}).toUpperCase()}</div><div class="b">${days===0?'TODAY':days+'D'}</div></div>
-      </div>
-      <div class="more"><b>What:</b> ${esc(e.what)}<br><br><b>Why it matters:</b> ${esc(e.why)}</div>
-    </div>`;
+    return `<div class="crow ${open?'open':''}" onclick="toggleCard('${e.date}')">
+      <div class="cdate"><div class="d1">${dt.getDate()} ${dt.toLocaleString('en',{month:'short'}).toUpperCase()}</div><div class="d2">${dt.toLocaleString('en',{weekday:'short'})}</div></div>
+      <div class="cmain"><div class="t">${esc(e.title)}</div><div class="w">${esc(e.what)}</div></div>
+      <div class="cright"><div class="in">${days===0?'TODAY':'in '+days+'d'}</div><div class="tm">${esc(e.time)} ${e.market==='US'?'ET':'IST'}</div></div>
+    </div>
+    ${open?`<div class="cmore" style="display:block"><b>Why it matters:</b> ${esc(e.why)}</div>`:''}`;
   }).join('');
 }
 
-let prevPhase='';
+const PH={standby:['STANDBY',''],starting:['LAUNCHING','a'],watching:['ARMED','g'],in_position:['IN POSITION','g'],managing:['RIDING RUNNER','g'],done:['SESSION DONE','']};
+let prevHead='';
 async function refresh(){
-  let d,h,act;
+  let d,h;
   try{
-    [d,h,act]=await Promise.all([
+    [d,h]=await Promise.all([
       (await fetch('/api/status')).json(),
-      fetch('/api/health').then(r=>r.json()).catch(()=>({})),
-      fetch('/api/activity').then(r=>r.json()).catch(()=>({sessions:[]}))
+      fetch('/api/health').then(r=>r.json()).catch(()=>({}))
     ]);
   }catch(e){return;}
   lastData=d;
-
-  const PH={standby:['STANDBY',''],starting:['LAUNCHING','a'],watching:['ARMED · WATCHING','g'],in_position:['IN POSITION','g'],managing:['RIDING RUNNER','g'],done:['SESSION DONE','']};
   const[label,cls]=PH[d.phase]||PH.standby;
-  $('nav-status').textContent=label;
-  $('nav-dot').className='dot '+(cls||'');
-  if(label!==prevPhase){$('kicker').textContent=label==='STANDBY'?'The hunt is on':label.toLowerCase();prevPhase=label;}
+  $('n-status').textContent=label;$('n-dot').className='d '+(cls||'');
+  $('start').disabled=$('start2').disabled=d.running;
+  $('stop').disabled=$('stop2').disabled=!d.running;
 
-  /* reticle */
   const nxt=(d.events_in||[])[0];
   if(d.running){
-    $('ret-name').textContent='TARGET LOCKED';
-    $('ret-sub').textContent=d.last_action||'managing the session';
-    $('ret-date').textContent=(d.today||'').slice(5);
+    const s=`The wolf is <b>${label.toLowerCase()}</b> — ${esc(d.last_action||'managing the session')}.`;
+    if(s!==prevHead){$('headline').innerHTML=s;prevHead=s;}
+  }else if(d.today_event){
+    const s=`Today is a <b>hunting day</b> — ${esc(d.today_event.title)} at ${esc(d.today_event.time)} IST.`;
+    if(s!==prevHead){$('headline').innerHTML=s;prevHead=s;}
   }else if(nxt){
     const days=Math.round((new Date(nxt.date)-new Date(d.today))/86400000);
-    $('ret-name').textContent=nxt.title.split('(')[0].trim().toUpperCase().slice(0,20);
-    $('ret-sub').textContent=`tracking — ${nxt.date} · ${days===0?'TODAY':'in '+days+' day'+(days===1?'':'s')}`;
-    $('ret-date').textContent=nxt.date.slice(5);
-  }else{
-    $('ret-name').textContent='SCANNING';
-    $('ret-sub').textContent='no targets on the calendar horizon';
-    $('ret-date').textContent='—';
+    const s=`The wolf rests. Next hunt: <b>${esc(nxt.title.toLowerCase())}</b>, in <b>${days} day${days===1?'':'s'}</b><span class="muted">.</span>`;
+    if(s!==prevHead){$('headline').innerHTML=s;prevHead=s;}
   }
 
-  /* record */
   const pp=d.paper||{};
-  $('r-pnl').textContent=pp.total?('₹'+inr(pp.total_pnl)):'—';
-  $('r-pnl').className='v '+(pp.total?(pp.total_pnl>=0?'up':'dn'):'');
-  $('r-trades').textContent=pp.total;
-  $('r-trades-s').textContent=pp.total?`${pp.live_count||0} real · ${pp.paper_count||0} practice`:'first hunt writes history';
-  $('r-wr').textContent=pp.total?((pp.win_rate*100).toFixed(0)+'%'):'—';
+  $('h-pnl').textContent=pp.total?('₹'+inr(pp.total_pnl)):'—';
+  $('h-pnl').className='v '+(pp.total?(pp.total_pnl>=0?'up':'dn'):'');
+  $('h-pnl-s').textContent=pp.total?`${pp.total} hunts · ${((pp.win_rate*100).toFixed(0))}% win rate`:'the record decides everything';
+  $('r-mega').textContent=pp.total?('₹'+inr(pp.total_pnl)):'₹0';
+  $('r-mega').className='mega '+(pp.total?(pp.total_pnl>=0?'up':'dn'):'');
+  $('r-mega-s').textContent=pp.total?`net of ₹60/trade est. costs · ${pp.live_count||0} real · ${pp.paper_count||0} practice`:'no completed hunts yet — the first one writes history';
+  $('s-tr').textContent=pp.total;
+  $('s-tr-s').textContent=pp.total?'and counting':'of ~30 candidate days left in 2026';
+  $('s-wr').textContent=pp.total?((pp.win_rate*100).toFixed(0)+'%'):'—';
+  let pf='—';
+  if(pp.journal_full&&pp.journal_full.length){
+    const w=pp.journal_full.filter(t=>Number(t.pnl||0)>0).reduce((a,t)=>a+Number(t.pnl),0);
+    const l=Math.abs(pp.journal_full.filter(t=>Number(t.pnl||0)<0).reduce((a,t)=>a+Number(t.pnl),0));
+    pf=l>0?(w/l).toFixed(2):(w>0?'∞':'—');
+  }
+  $('s-pf').textContent=pf;
+  $('s-mix').textContent=`${pp.live_count||0} / ${pp.paper_count||0}`;
+  spark(pp.curve);
+
   if(nxt){
     const days=Math.round((new Date(nxt.date)-new Date(d.today))/86400000);
-    $('r-next').textContent=days===0?'TODAY':days+'d';
-    $('r-next-s').textContent=`${nxt.date} · ${esc(nxt.title.slice(0,26))}`;
+    $('h-next').textContent=nxt.title.split('(')[0].trim().slice(0,24);
+    $('h-next').className='v sm';
+    $('h-next-s').textContent=`${nxt.date} · in ${days} day${days===1?'':'s'}`;
   }
-  thermal(pp.curve);
+  const dh=d.dhan||{};
+  if(dh.connected){
+    $('h-funds').textContent='₹'+inr(dh.available);
+    $('h-funds').className='v'+(Number(dh.available)<1000?' dn':'');
+    $('h-funds-s').textContent=Number(dh.available)<1000?'low balance':'connected';
+    $('funds-line').innerHTML=`Dhan — <span style="color:var(--lime)">₹${inr(dh.available)}</span> available`;
+  }else{
+    $('h-funds').textContent='—';$('h-funds-s').textContent=dh.reason||'not connected';
+    $('funds-line').textContent='Dhan — '+esc(dh.reason||'not connected');
+  }
+  const rows=[['Autopilot',h.autopilot?'g':'r','wakes the wolf · 08:30 brief'],
+              ['News radar',h.sentinel?'g':'r','reads headlines · red-flag veto'],
+              ['Wolf engine',(h.engine||d.running)?'g':(h.autopilot?'a':'r'),'entries · exits']];
+  $('h-svc').innerHTML=rows.map(([n,s])=>`<div class="r"><span class="d ${s}"></span><b>${n}</b></div>`).join('');
+  $('sys-rows').innerHTML=rows.map(([n,s,ds])=>`<div class="sysrow"><span class="d ${s}"></span><div><div class="n">${n}</div><div class="ds">${ds}</div></div><div class="v" style="color:${s==='g'?'var(--lime)':s==='a'?'#f59e0b':'var(--red)'}">${s==='g'?'ONLINE':s==='a'?'STANDBY':'OFFLINE'}</div></div>`).join('');
 
-  /* kill sheet */
+  renderCards();
   const bt=d.backtest||{};
   const btRows=(bt.trades||[]).map(t=>({ts:t.date,event:t.event,src:'backtest',side:t.side,strike:t.strike,pnl:Number(t.pnl||0)}));
   const ppRows=(pp.journal_full||[]).map(t=>({ts:(t.timestamp||'').slice(0,10),event:t.event,src:(t.mode||'').toUpperCase(),side:t.side,strike:t.strike,pnl:Number(t.pnl||0)}));
-  const merged=[...ppRows,...btRows].sort((a,b)=>(b.ts||'').localeCompare(a.ts||''));
-  $('ks-body').innerHTML=merged.length?merged.slice(0,20).map(t=>`
-    <tr><td style="color:var(--t2)">${esc(t.ts)}</td><td>${esc(t.event)}</td>
-    <td><span class="badge ${esc(t.src)}">${esc(t.src)}</span></td>
-    <td class="${(t.side||'').toLowerCase()==='call'?'cArrow':'pArrow'}">${(t.side||'').toUpperCase()==='CALL'?'▲ CALL':'▼ PUT'}</td>
+  const merged=[...ppRows,...btRows].sort((a,b)=>(b.ts||'').localeCompare(a.ts||'')).slice(0,12);
+  $('tb-body').innerHTML=merged.length?merged.map(t=>`
+    <tr><td class="dt">${esc(t.ts)}</td><td>${esc(t.event)}</td>
+    <td><span class="tag ${esc((t.src||'').toLowerCase())}">${esc(t.src)}</span></td>
+    <td class="${(t.side||'').toLowerCase()==='call'?'call':'put'}">${(t.side||'').toUpperCase()==='CALL'?'▲ CALL':'▼ PUT'}</td>
     <td>${esc(t.strike)}</td>
-    <td class="${t.pnl>=0?'pos':'neg'}" style="text-align:right">${t.pnl>=0?'+':''}₹${inr(t.pnl)}</td></tr>`).join('')
-    :'<tr><td colspan="6" style="text-align:center;color:var(--t3);padding:26px"><b style="color:var(--t2)">No kills yet.</b><br>The wolf only strikes on hunt days — first window: Sep 29 expiry.</td></tr>';
-
-  renderCards();
-
-  /* system rows */
-  const rows=[['Autopilot',h.autopilot?'g':(h.autopilot===false&&h.sentinel?'r':''),'wakes the wolf · 08:30 brief'],
-              ['News radar',h.sentinel?'g':'r','reads headlines · red-flag veto'],
-              ['Wolf engine',(h.engine||d.running)?'g':(h.autopilot?'a':'r'),'entries · exits · the actual hunt']];
-  $('sys-rows').innerHTML=rows.map(([n,s,ds])=>`<div class="srow"><span class="sq ${s}"></span><div><div class="n">${n}</div><div class="d">${ds}</div></div><div class="v" style="color:${s==='g'?'var(--teal)':s==='a'?'var(--amber)':'var(--dn)'}">${s==='g'?'ONLINE':s==='a'?'STANDBY':'OFFLINE'}</div></div>`).join('');
-
-  /* funds */
-  const dh=d.dhan||{};
-  if(dh.connected){
-    $('funds-line').innerHTML=`Dhan connected — available <span class="pos">₹${inr(dh.available)}</span>${Number(dh.available)<1000?' · <span class="neg">⚠ low balance</span>':''}`;
-  }else{
-    $('funds-line').innerHTML=`Dhan — <span style="color:var(--t3)">${esc(dh.reason||'not connected')}</span>`;
-  }
+    <td class="${t.pnl>=0?'up':'dn'}" style="text-align:right">${t.pnl>=0?'+':''}₹${inr(t.pnl)}</td></tr>`).join('')
+    :'<tr class="emptyrow"><td colspan="6"><b>No trades yet.</b><br>The wolf only strikes on hunt days — first window: Sep 29 expiry, then Oct 7 RBI-MPC.</td></tr>';
 
   const al=d.alerts||[];
   $('alertbar').className='mayday'+(al.length?' show':'');
