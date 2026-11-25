@@ -8,3 +8,5 @@ catalysts_extra.csv
 *.pyc
 .env
 *.env
+
+logs/
